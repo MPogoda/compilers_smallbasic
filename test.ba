@@ -1,0 +1,21 @@
+Sub WriteArray
+    k = 0
+    While k < 4
+        k = k + 1
+        TextWindow.Write( a[ k ] )
+        TextWindow.Write( ", " )
+    EndWhile
+    TextWindow.Write( a[ k ] )
+EndSub
+
+i = 0
+While i < 5
+    i = i + 1
+    If i <> 3 Then
+        a[ i ] = i * i
+    Else
+        a[ i ] = 42
+    EndIf
+EndWhile
+
+WriteArray()
