@@ -174,7 +174,7 @@ Lexems parse( const Container input )
                << line << '\n';
             while (0 != column-- )
                 ss << ' ';
-            ss << "\033[0;31m^\033[0m\n";
+            ss << "^\n";
             throw std::invalid_argument{ ss.str() };
         }
         for (const auto& lexem : tempResult ) {

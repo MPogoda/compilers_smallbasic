@@ -3,6 +3,7 @@
 #include <QWidget>
 #include <QTableView>
 #include <QTextEdit>
+#include <QPushButton>
 
 #include <memory>
 
@@ -20,9 +21,11 @@ private:
     std::unique_ptr< QTableView  >  m_table;
     std::unique_ptr< LexemsModel >  m_model;
     std::unique_ptr< QTextEdit   >  m_text;
+    std::unique_ptr< QPushButton >  m_open;
+    std::unique_ptr< QPushButton >  m_exec;
+    std::unique_ptr< QPushButton >  m_quit;
 private slots:
     void openFile();
-
-
+    void parseFile();
 }; // class MainWindow
 } // namespace sap
