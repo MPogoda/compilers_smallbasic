@@ -1,0 +1,65 @@
+<expr> → <expr> '+' <term>
+       | <expr> '-' <term>
+       | <term>
+<term> → <term> * <factor>
+       | <term> / <factor>
+       | <factor>
+<factor> → <int-constant>
+        | <identifier>
+        | '(' <expr> ')'
+
+<ident-or-expr> → <identifier> | <expr>
+
+<ident-or-array-ident> → <identifier> ( '[' <ident-or-expr> ']' )?
+
+<ident-or-expr-or-const> → <ident-or-array-ident>
+                         | <bool-constant>
+                         | <string-constant>
+
+<read-stmt> = 'TextWindow.Read()'
+
+<assignment> → <ident-or-array-ident> '=' <ident-or-expr-or-const>
+             | <ident-or-array-ident> '=' <read-stmt>
+             | <ident-or-array-ident> '=' <bool-expr>
+
+<int-compare> → <expr> '>' <expr>
+              | <expr> '<' <expr>
+              | <expr> '=' <expr>
+              | <expr> '<>' <expr>
+
+<bool-expr> → <int-compare>
+            | <identifier>
+
+<dim-expr> → 'Dim ' <identifier>
+
+<label-def> → <identifier> ':'
+
+<goto-stmt> → 'Goto' <identifier>
+
+<if-stmt> → 'If' <bool-expr> 'Then' '\n'
+                <stmts>
+            ('Else' '\n' <stmts>)?
+            'EndIf' '\n'
+
+<while-stmt> → 'While' <bool-expr> '\n'
+                    <stmts>
+                'EndWhile' '\n'
+
+<write-stmt> → 'TextWindow.Write( ' <identifier-or-expr> ')'
+
+<sub-stmt> → 'Sub' <identifier> '\n'
+                <stmts>
+             'EndSub' '\n'
+
+<sub-call-stmt> = <identifier> '()'
+
+<stmt> → <label-def>? <dim-expr>
+       | <label-def>? <assignment>
+       | <label-def>? <if-stmt>
+       | <label-def>? <goto-stmt>
+       | <label-def>? <while-stmt>
+       | <label-def>? <write-stmt>
+
+<stmts> → <stmt>⁺
+
+<start> → ( <stmts> | <sub-stmt>)⁺
