@@ -1,65 +1,141 @@
-<expr> → <expr> '+' <term>
-       | <expr> '-' <term>
-       | <term>
-<term> → <term> * <factor>
-       | <term> / <factor>
-       | <factor>
-<factor> → <int-constant>
-        | <identifier>
-        | '(' <expr> ')'
+01. <start> → <all-stmts>
 
-<ident-or-expr> → <identifier> | <expr>
+02. <all-stmt> → <sub-stmt>
+03. <all-stmt> → <lstmt>
 
-<ident-or-array-ident> → <identifier> ( '[' <ident-or-expr> ']' )?
+04. <all-stmts> → <all-stmt> <more-all-stmts>
 
-<ident-or-expr-or-const> → <ident-or-array-ident>
-                         | <bool-constant>
-                         | <string-constant>
+05. <more-all-stmts> → <all-stmts>
+06. <more-all-stmts> → <eps>
 
-<read-stmt> = 'TextWindow.Read()'
-
-<assignment> → <ident-or-array-ident> '=' <ident-or-expr-or-const>
-             | <ident-or-array-ident> '=' <read-stmt>
-             | <ident-or-array-ident> '=' <bool-expr>
-
-<int-compare> → <expr> '>' <expr>
-              | <expr> '<' <expr>
-              | <expr> '=' <expr>
-              | <expr> '<>' <expr>
-
-<bool-expr> → <int-compare>
-            | <identifier>
-
-<dim-expr> → 'Dim ' <identifier>
-
-<label-def> → <identifier> ':'
-
-<goto-stmt> → 'Goto' <identifier>
-
-<if-stmt> → 'If' <bool-expr> 'Then' '\n'
-                <stmts>
-            ('Else' '\n' <stmts>)?
-            'EndIf' '\n'
-
-<while-stmt> → 'While' <bool-expr> '\n'
-                    <stmts>
-                'EndWhile' '\n'
-
-<write-stmt> → 'TextWindow.Write( ' <identifier-or-expr> ')'
-
-<sub-stmt> → 'Sub' <identifier> '\n'
+07. <sub-stmt> → 'Sub' <identifier> '\n'
                 <stmts>
              'EndSub' '\n'
 
-<sub-call-stmt> = <identifier> '()'
+08. <stmts> → <lstmt> <more-stmts>
 
-<stmt> → <label-def>? <dim-expr>
-       | <label-def>? <assignment>
-       | <label-def>? <if-stmt>
-       | <label-def>? <goto-stmt>
-       | <label-def>? <while-stmt>
-       | <label-def>? <write-stmt>
+09. <more-stmts> → <stmts>
+10. <more-stmts> → <eps>
 
-<stmts> → <stmt>⁺
+11. <lstmt> → <label-def> <stmt>
+12. <lstmt> → <label-def> '\n'
 
-<start> → ( <stmts> | <sub-stmt>)⁺
+13. <stmt> → <dim-expr>
+14. <stmt> → <assignment>
+15. <stmt> → <if-stmt>
+16. <stmt> → <goto-stmt>
+17. <stmt> → <while-stmt>
+18. <stmt> → <write-stmt>
+19. <stmt> → <sub-call-stmt>
+
+
+21. <label-def> → <int_constant> ':'
+22. <label-def> → <eps>
+
+23. <dim-expr> → 'Dim ' <identifier> '\n'
+
+24. <assignment> → <id> '=' <rightside> '\n'
+
+25. <id> → <identifier> <array-index>
+26. <id> → <identifier>
+
+27. <array-index> → '[' <operand-int> ']'
+
+28. <operand-int> → <id>
+29. <operand-int> → <int-constant>
+
+30. <rightside> → <read-stmt>
+31. <rightside> → <int-expr>
+32. <rightside> → <logic>
+33. <rightside> → <string-constant>
+
+34. <read-stmt> = 'TextWindow.Read' '(' ')'
+
+35. <int-expr> → <operand-int> <operator-int> <operand-int>
+36. <int-expr> → <operand-int>
+
+37. <operator-int> → '+'
+38. <operator-int> → '-'
+39. <operator-int> → '/'
+40. <operator-int> → '*'
+
+41. <logic> → <logic-int>
+42. <logic> → <logic-bool>
+43. <logic> → <logic-str>
+
+44. <logic-int> → <operand-int> <compare-int> <operand-int>
+
+45. <compare-int> → '<'
+46. <compare-int> → '>'
+47. <compare-int> → <logic-equals>
+
+48. <logic-equals> → '='
+49. <logic-equals> → '<>'
+
+50. <logic-bool> → <operand-bool> <logic-equals> <operand-bool>
+51. <logic-bool> → <operand-bool>
+
+52. <operand-bool> → <id>
+53. <operand-bool> → <bool-constant>
+
+54. <logic-str> → <operand-str> <logic-equals> <operand-str>
+
+55. <operand-str> → <id>
+56. <operand-str> → <string_constant>
+
+57. <if-stmt> → 'If' <logic> 'Then' '\n'
+                <stmts>
+                <else-part>
+            'EndIf' '\n'
+
+58. <else-part> → 'Else' '\n' <stmts>
+59. <else-part> → <eps>
+
+60. <goto-stmt> → 'Goto' <int-constant> '\n'
+
+61. <while-stmt> → 'While' <bool-expr> '\n'
+                    <stmts>
+                'EndWhile' '\n'
+
+62. <write-stmt> → 'TextWindow.Write' '(' <writeable> ')' '\n'
+
+63. <writeable> → <int-expr>
+64. <writeable> → <logic>
+65. <writeable> → <string-constant>
+
+66. <sub-call-stmt> → <identifier> '(' ')' '\n'
+
+<start>                 01( 'Dim' ) 01( <identifier> ) 01( 'If' ) 01( 'Goto' ) 01( 'While' ) 01( 'TextWindow.Write' ) 01( <identifier> ) 01( 'Sub' )
+<all-stmt>              03( 'Dim' ) 03( <identifier> ) 03( 'If' ) 03( 'Goto' ) 03( 'While' ) 03( 'TextWindow.Write' ) 03( <identifier> ) 02( 'Sub' )
+<all-stmts>             04( 'Dim' ) 04( <identifier> ) 04( 'If' ) 04( 'Goto' ) 04( 'While' ) 04( 'TextWindow.Write' ) 04( <identifier> ) 04( 'Sub' )
+<more-all-stmts>        05( 'Dim' ) 05( <identifier> ) 05( 'If' ) 05( 'Goto' ) 05( 'While' ) 05( 'TextWindow.Write' ) 05( <identifier> ) 05( 'Sub' ) 06( <eps> )
+<sub-stmt>              07( 'Sub' )
+<stmts>                 08( 'Dim' ) 08( <identifier> ) 08( 'If' ) 08( 'Goto' ) 08( 'While' ) 08( 'TextWindow.Write' ) 08( <identifier> )
+<more-stmts>            09( 'Dim' ) 09( <identifier> ) 09( 'If' ) 09( 'Goto' ) 09( 'While' ) 09( 'TextWindow.Write' ) 09( <identifier> ) 10( <eps> )
+<lstmt>                 11( <int-constant> ) 11( <eps> ) 12( <int-constant> ) 12( <eps> )
+<stmt>                  13( 'Dim' ) 14( <identifier> ) 15( 'If' ) 16( 'Goto' ) 17( 'While' ) 18( 'TextWindow.Write' ) 19( <identifier> )
+<label-def>             21( <int-constant> ) 22( <eps> )
+<dim-expr>              23( 'Dim' )
+<assignment>            24( <identifier> )
+<id>                    26( <identifier> ) 25( <identifier> )
+<array-index>           27( '[' )
+<operand-int>           29( <int-constant> ) 28( <identifier > )
+<rightside>             30( 'TextWidnow.Read' ) 31( <int-constant> ) 31( <identifier> ) 32( <int-constant> ) 32( <bool-constant> ) 32( <string-constant> ) 32( <identifier> ) 33( <string-constant> )
+<read-stmt>             34( 'TextWindow.Read' )
+<int-expr>              35( <int-constant> ) 35( <identifier > ) 36( <int-constant> ) 36( <identifier> )
+<operator-int>          37( '+' ) 38( '-' ) 39( '/' ) 40('*')
+<logic>                 41( <int-constant> ) 41( <identifier> ) 42( <bool-constant> ) 42( <identifier> ) 43( <string-constant> ) 43( <identifier> )
+<logic-int>             44( <int-constant> ) 45( <identifier> )
+<compare-int>           45( '<' ) 46( '>' ) 47( '<>' ) 47( '=' )
+<logic-equals>          49( '<>' ) 48( '=' )
+<logic-bool>            50( <bool-constant> ) 50( <identifier> ) 51( <bool-constant> ) 51( <identifier > )
+<operand-bool>          53( <bool-constant> ) 52( <identifier> )
+<logic-str>             54( <string-constant> ) 54( <identifier> )
+<operand-str>           56( <string-constant> ) 55( <identifier> )
+<if-stmt>               57( 'If' )
+<else-part>             58( 'Else' ) 59( <eps> )
+<goto-stmt>             60( 'Goto' )
+<while-stmt>            61( 'While' )
+<write-stmt>            62( 'TextWindow.Write' )
+<writeable>             63( <int-constant> ) 63( <identifier> ) 64( <bool-constant> ) 64( <identifier> ) 64( <string-constant> ) 65( <string-constant> )
+<sub-call-stmt>         66( <identifier> )

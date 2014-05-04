@@ -20,8 +20,7 @@ struct lex
         }; // enum class type
 
     enum class symbol : uint8_t
-        { DOT                   // .
-        , L_PARENTHESIS         // (
+        { L_PARENTHESIS         // (
         , R_PARENTHESIS         // )
         , L_BRACKET             // [
         , R_BRACKET             // ]
@@ -56,7 +55,7 @@ struct lex
 
     type type_;
 
-    typedef boost::variant< symbol, reserved_word, std::string, double, uint, bool > value;
+    typedef boost::variant< symbol, reserved_word, std::string, uint, bool > value;
     value value_;
 
     static const char* const type_STRINGS       [ static_cast< uint8_t >( lex::type::COUNT )            ];

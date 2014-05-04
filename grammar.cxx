@@ -70,7 +70,7 @@ struct MyGrammar : qi::grammar< Iterator, Lexems(), qi::ascii::space_type >
 
     qi::rule< Iterator, lex::type(), qi::ascii::space_type > constant_type;
     qi::rule< Iterator, std::string()                      > string_constant;
-    qi::rule< Iterator, double()   , qi::ascii::space_type > double_constant;
+    qi::rule< Iterator, uint()   , qi::ascii::space_type > uint_constant;
     qi::rule< Iterator, bool()     , qi::ascii::space_type > bool_constant;
     qi::rule< Iterator, lex()      , qi::ascii::space_type > constant_rule;
 
@@ -91,7 +91,7 @@ struct MyGrammar : qi::grammar< Iterator, Lexems(), qi::ascii::space_type >
         using qi::lit;
         using qi::eps;
         using qi::eol;
-        using qi::double_;
+        using qi::uint_;
 
         // dummy, sets lex.type_ field
         symbol_type  = eps          [ _val = lex::type::SYMBOL ];
@@ -115,7 +115,7 @@ struct MyGrammar : qi::grammar< Iterator, Lexems(), qi::ascii::space_type >
                         >> identifier;
 
         constant_type    = eps                      [ _val = lex::type::CONST ];
-        double_constant %= double_;
+        uint_constant   %= uint_;
         // bool constant is either True or False
         bool_constant    = lit("\"true\"")              [ _val = true ]
                          | lit("\"false\"")             [ _val = false ];
@@ -125,7 +125,7 @@ struct MyGrammar : qi::grammar< Iterator, Lexems(), qi::ascii::space_type >
                         >> lit("\"");
         // constant is either double, or bool, or string constant
         constant_rule   %= constant_type
-                        >> ( double_constant
+                        >> ( uint_constant
                            | bool_constant
                            | string_constant
                            );
@@ -152,7 +152,7 @@ Lexems parse( const Container input )
 {
     Lexems result;
     Iterator beg{ std::begin( input ) };
-    Iterator end{ std::end( input ) };
+    const Iterator end{ std::end( input ) };
 
     lines ls;
     if ( (! boost::spirit::qi::parse( beg, end, linesGrammar, ls ) )
@@ -163,9 +163,13 @@ Lexems parse( const Container input )
     uint i{ 0 };
     for (const auto& line : ls ) {
         ++i;
+        if (line.empty()) continue;
+
         Lexems tempResult;
-        beg = std::begin( line );
-        end = std::end( line );
+        Iterator beg = std::begin( line );
+        const Iterator end = std::end( line );
+
+
         if ( (!qi::phrase_parse( beg, end, myGrammar, qi::ascii::space, tempResult ) )
           || (0 != std::distance( beg, end ) ) ) {
             std::stringstream ss;
