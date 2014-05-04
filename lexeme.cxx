@@ -9,6 +9,8 @@ const char* const lex::type_STRINGS[] = { "SYMBOL"
                                         , "CONST"
                                         , "RESERVED"
                                         , "IDENTIFIER"
+
+                                        , "RULE"
                                         }; // type_STRINGS
 const char* const lex::symbol_STRINGS[] = { "("
                                           , ")"
@@ -36,7 +38,41 @@ const char* const lex::reserved_STRINGS[] = { "Sub"
                                             , "Goto"
                                             , "Dim"
                                             }; // reserved_STRINGS
-
+const char* const lex::rule_STRINGS[] = { "<start>"
+                                        , "<all-stmt>"
+                                        , "<all-stmts>"
+                                        , "<more-all-stmts"
+                                        , "<sub-stmt>"
+                                        , "<stmts>"
+                                        , "<more-stmts>"
+                                        , "<lstmt>"
+                                        , "<stmt>"
+                                        , "<label-def>"
+                                        , "<dim-expr>"
+                                        , "<assignment>"
+                                        , "<id>"
+                                        , "<array-index>"
+                                        , "<operand-int>"
+                                        , "<rightside>"
+                                        , "<read-stmt>"
+                                        , "<int-expr>"
+                                        , "<operator-int>"
+                                        , "<logic>"
+                                        , "<logic-int>"
+                                        , "<compare-int>"
+                                        , "<logic-equals>"
+                                        , "<logic-bool>"
+                                        , "<operand-bool>"
+                                        , "<logic-str>"
+                                        , "<operand-str>"
+                                        , "<if-stmt>"
+                                        , "<else-part>"
+                                        , "<goto-stmt>"
+                                        , "<while-stmt>"
+                                        , "<write-stmt>"
+                                        , "<writeable>"
+                                        , "<sub-call-stmt>"
+                                        }; // rule_STRINGS
 std::ostream& operator<<( std::ostream& out, lex::type rhs )
 {
     out << lex::type_STRINGS[ static_cast< uint8_t >( rhs ) ];
@@ -46,6 +82,12 @@ std::ostream& operator<<( std::ostream& out, lex::type rhs )
 std::ostream& operator<<( std::ostream& out, lex::symbol rhs )
 {
     out << lex::symbol_STRINGS[ static_cast< uint8_t >( rhs ) ];
+    return out;
+}
+
+std::ostream& operator<<( std::ostream& out, lex::rule rhs )
+{
+    out << lex::rule_STRINGS[ static_cast< uint8_t >( rhs ) ];
     return out;
 }
 
