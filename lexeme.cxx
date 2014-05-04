@@ -1,16 +1,20 @@
 #include "lexeme.h"
 
 #include <iostream>
+#include <functional>
 
 namespace sap
 {
 const char* const lex::type_STRINGS[] = { "SYMBOL"
                                         , "NEWLINE"
-                                        , "CONST"
+                                        , "INT CONST"
+                                        , "BOOL CONST"
+                                        , "STR CONST"
                                         , "RESERVED"
                                         , "IDENTIFIER"
 
                                         , "RULE"
+                                        , "EPSILON"
                                         }; // type_STRINGS
 const char* const lex::symbol_STRINGS[] = { "("
                                           , ")"
@@ -108,5 +112,10 @@ std::ostream& operator<<( std::ostream& out, lex rhs )
         << '\''
         << "]";
     return out;
+}
+
+bool operator==( const lex& lhs, const lex& rhs )
+{
+    return (lhs.type_ == rhs.type_) && (lhs.value_ == rhs.value_);
 }
 } // namespace sap

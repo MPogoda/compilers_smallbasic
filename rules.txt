@@ -93,7 +93,7 @@
 
 60. <goto-stmt> → 'Goto' <int-constant> '\n'
 
-61. <while-stmt> → 'While' <bool-expr> '\n'
+61. <while-stmt> → 'While' <logic> '\n'
                     <stmts>
                 'EndWhile' '\n'
 
@@ -105,8 +105,8 @@
 
 66. <sub-call-stmt> → <identifier> '(' ')' '\n'
 
-<start>                 01( 'Dim' ) 01( <identifier> ) 01( 'If' ) 01( 'Goto' ) 01( 'While' ) 01( 'TextWindow.Write' ) 01( <identifier> ) 01( 'Sub' )
-<all-stmt>              03( 'Dim' ) 03( <identifier> ) 03( 'If' ) 03( 'Goto' ) 03( 'While' ) 03( 'TextWindow.Write' ) 03( <identifier> ) 02( 'Sub' )
+<start>                 01( 'Dim' ) 01( <identifier> ) 01( 'If' ) 01( 'Goto' ) 01( 'While' ) 01( 'TextWindow.Write' ) 01( 'Sub' )
+<all-stmt>              03( 'Dim' ) 03( <identifier> ) 03( 'If' ) 03( 'Goto' ) 03( 'While' ) 03( 'TextWindow.Write' ) 02( <identifier> ) 02( 'Sub' )
 <all-stmts>             04( 'Dim' ) 04( <identifier> ) 04( 'If' ) 04( 'Goto' ) 04( 'While' ) 04( 'TextWindow.Write' ) 04( <identifier> ) 04( 'Sub' )
 <more-all-stmts>        05( 'Dim' ) 05( <identifier> ) 05( 'If' ) 05( 'Goto' ) 05( 'While' ) 05( 'TextWindow.Write' ) 05( <identifier> ) 05( 'Sub' ) 06( <eps> )
 <sub-stmt>              07( 'Sub' )

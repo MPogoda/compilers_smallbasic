@@ -68,7 +68,9 @@ struct MyGrammar : qi::grammar< Iterator, Lexems(), qi::ascii::space_type >
     qi::rule< Iterator, std::string()                      > identifier;
     qi::rule< Iterator, lex()      , qi::ascii::space_type > identifier_rule;
 
-    qi::rule< Iterator, lex::type(), qi::ascii::space_type > constant_type;
+    qi::rule< Iterator, lex::type(), qi::ascii::space_type > int_constant_type;
+    qi::rule< Iterator, lex::type(), qi::ascii::space_type > bool_constant_type;
+    qi::rule< Iterator, lex::type(), qi::ascii::space_type > str_constant_type;
     qi::rule< Iterator, std::string()                      > string_constant;
     qi::rule< Iterator, uint()   , qi::ascii::space_type > uint_constant;
     qi::rule< Iterator, bool()     , qi::ascii::space_type > bool_constant;
@@ -114,7 +116,9 @@ struct MyGrammar : qi::grammar< Iterator, Lexems(), qi::ascii::space_type >
         identifier_rule  = identifier_type
                         >> identifier;
 
-        constant_type    = eps                      [ _val = lex::type::CONST ];
+        int_constant_type    = eps                      [ _val = lex::type::INT_CONST ];
+        bool_constant_type    = eps                      [ _val = lex::type::BOOL_CONST ];
+        str_constant_type    = eps                      [ _val = lex::type::STR_CONST ];
         uint_constant   %= uint_;
         // bool constant is either True or False
         bool_constant    = lit("\"true\"")              [ _val = true ]
@@ -124,12 +128,10 @@ struct MyGrammar : qi::grammar< Iterator, Lexems(), qi::ascii::space_type >
                         >> *(char_ - char_('"'))
                         >> lit("\"");
         // constant is either double, or bool, or string constant
-        constant_rule   %= constant_type
-                        >> ( uint_constant
-                           | bool_constant
-                           | string_constant
-                           );
-
+        constant_rule   %= ( int_constant_type >> uint_constant )
+                        |  ( bool_constant_type >> bool_constant )
+                        |  ( str_constant_type >> string_constant )
+                        ;
         // matches all lexemes, that a visible (not newline )
         // it's either reserved word, or constant, or identifier, or symbol
         visible_lexeme  %= reserved_rule

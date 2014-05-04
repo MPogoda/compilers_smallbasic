@@ -12,12 +12,15 @@ struct lex
     enum class type : uint8_t
         { SYMBOL
         , NEWLINE
-        , CONST
+        , INT_CONST
+        , BOOL_CONST
+        , STR_CONST
         , RESERVED
         , IDENTIFIER
 
         , RULE
 
+        , EPS
         , COUNT
         }; // enum class type
 
@@ -110,7 +113,9 @@ std::ostream& operator<<( std::ostream& out, lex::type          rhs );
 std::ostream& operator<<( std::ostream& out, lex::symbol        rhs );
 std::ostream& operator<<( std::ostream& out, lex::rule        rhs );
 std::ostream& operator<<( std::ostream& out, lex::reserved_word rhs );
-std::ostream& operator<<( std::ostream& out, lex                rhs );
+std::ostream& operator<<( std::ostream& out, const lex&           rhs );
+
+bool operator==( const lex& lhs, const lex& rhs );
 } // namespace sap
 BOOST_FUSION_ADAPT_STRUCT(
     sap::lex,
