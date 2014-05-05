@@ -8,6 +8,10 @@
 #include <fstream>
 
 #include <QDebug>
+#include <iostream>
+
+#include "syntax.h"
+
 namespace sap
 {
 MainWindow::MainWindow( QWidget *parent )
@@ -67,6 +71,17 @@ void MainWindow::parseFile()
     try {
         Lexems lexems = sap::parse( str );
         m_model->setLexems( lexems );
+
+        const Table table = createTable();
+        Stack ss; ss.push( { sap::lex::type::RULE, sap::lex::rule::START } );
+        Queue result = parse( table, lexems.begin(), lexems.end(), std::move( ss ) );
+
+        while (!result.empty()) {
+            std::cout << result.front() << " → ";
+            result.pop();
+        }
+        std::cout << std::endl;
+
     } catch ( std::exception& ex ) {
         QMessageBox::critical( this, tr("Parse error"), ex.what() );
     }

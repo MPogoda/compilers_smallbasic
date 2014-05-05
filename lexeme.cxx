@@ -18,8 +18,8 @@ const char* const lex::type_STRINGS[] = { "SYMBOL"
                                         }; // type_STRINGS
 const char* const lex::symbol_STRINGS[] = { "("
                                           , ")"
-                                          , "]"
                                           , "["
+                                          , "]"
                                           , "+"
                                           , "-"
                                           , "*"
@@ -101,7 +101,7 @@ std::ostream& operator<<( std::ostream& out, lex::reserved_word rhs )
     return out;
 }
 
-std::ostream& operator<<( std::ostream& out, lex rhs )
+std::ostream& operator<<( std::ostream& out, const lex& rhs )
 {
     out << "["
         << "type: '"
@@ -112,10 +112,5 @@ std::ostream& operator<<( std::ostream& out, lex rhs )
         << '\''
         << "]";
     return out;
-}
-
-bool operator==( const lex& lhs, const lex& rhs )
-{
-    return (lhs.type_ == rhs.type_) && (lhs.value_ == rhs.value_);
 }
 } // namespace sap
