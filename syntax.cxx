@@ -1,7 +1,5 @@
 #include "syntax.h"
 
-#include <iostream>
-
 namespace sap
 {
 void push_rule( Stack& st, const int rule_number )
@@ -171,7 +169,6 @@ bool operator==( const lex& lhs, const lex& rhs )
         case lex::type::IDENTIFIER:
             return true;
         default:
-            std::cout << lhs.type_;
             assert( !"Wrong lexeme!");
     }
     return false;
@@ -208,7 +205,6 @@ Queue parse( const Table& table, LIterator begin, const LIterator end, Stack ss)
             if (1 == sum_length) {
                 const uint rule = (length == 0) ? eq_eps.first->second : eq.first->second;
 
-                std::cout << "Rule: " << rule << '\n';
                 result.push( rule );
                 push_rule( ss, rule );
             } else { // length > 1
@@ -216,7 +212,6 @@ Queue parse( const Table& table, LIterator begin, const LIterator end, Stack ss)
                 for (; eq.second != eq.first; ++eq.first) {
                     Stack newSS{ ss };
                     const uint rule = eq.first->second;
-                    std::cout << "Trying Rule: " << rule << '\n';
                     push_rule( newSS, rule );
                     try {
                         Queue subQueue = parse( table, begin, end, std::move( newSS ) );
@@ -228,7 +223,6 @@ Queue parse( const Table& table, LIterator begin, const LIterator end, Stack ss)
                         }
                         return result;
                     } catch (std::logic_error& ex) {
-                        std::cout << "Failed rule!\n";
                         continue;
                     }
                 }
@@ -236,7 +230,6 @@ Queue parse( const Table& table, LIterator begin, const LIterator end, Stack ss)
                 for (; eq_eps.second != eq_eps.first; ++eq_eps.first) {
                     Stack newSS{ ss };
                     const uint rule = eq_eps.first->second;
-                    std::cout << "Trying Rule: " << rule << '\n';
                     push_rule( newSS, rule );
                     try {
                         Queue subQueue = parse( table, begin, end, std::move( newSS ) );
@@ -247,7 +240,6 @@ Queue parse( const Table& table, LIterator begin, const LIterator end, Stack ss)
                         }
                         return result;
                     } catch (std::logic_error& ex) {
-                        std::cout << "Failed rule!\n";
                         continue;
                     }
                 }
