@@ -105,13 +105,13 @@
 
 66. <sub-call-stmt> → <identifier> '(' ')' '\n'
 
-<start>                 01( 'Dim' ) 01( <identifier> ) 01( 'If' ) 01( 'Goto' ) 01( 'While' ) 01( 'TextWindow.Write' ) 01( 'Sub' )
-<all-stmt>              03( 'Dim' ) 03( <identifier> ) 03( 'If' ) 03( 'Goto' ) 03( 'While' ) 03( 'TextWindow.Write' ) 02( <identifier> ) 02( 'Sub' )
-<all-stmts>             04( 'Dim' ) 04( <identifier> ) 04( 'If' ) 04( 'Goto' ) 04( 'While' ) 04( 'TextWindow.Write' ) 04( <identifier> ) 04( 'Sub' )
-<more-all-stmts>        05( 'Dim' ) 05( <identifier> ) 05( 'If' ) 05( 'Goto' ) 05( 'While' ) 05( 'TextWindow.Write' ) 05( <identifier> ) 05( 'Sub' ) 06( <eps> )
+<start>                 01( 'Dim' ) 01( <identifier> ) 01( 'If' ) 01( 'Goto' ) 01( 'While' ) 01( 'TextWindow.Write' ) 01( 'Sub' ) 01(<int-const>)
+<all-stmt>              03( 'Dim' ) 03( <identifier> ) 03( 'If' ) 03( 'Goto' ) 03( 'While' ) 03( 'TextWindow.Write' ) 02( <identifier> ) 02( 'Sub' ) 03( <int-const> )
+<all-stmts>             04( 'Dim' ) 04( <identifier> ) 04( 'If' ) 04( 'Goto' ) 04( 'While' ) 04( 'TextWindow.Write' ) 04( <identifier> ) 04( 'Sub' ) 04( <int-const> )
+<more-all-stmts>        05( 'Dim' ) 05( <identifier> ) 05( 'If' ) 05( 'Goto' ) 05( 'While' ) 05( 'TextWindow.Write' ) 05( <identifier> ) 05( 'Sub' ) 06( <eps> ) 05( <int-const> )
 <sub-stmt>              07( 'Sub' )
-<stmts>                 08( 'Dim' ) 08( <identifier> ) 08( 'If' ) 08( 'Goto' ) 08( 'While' ) 08( 'TextWindow.Write' ) 08( <identifier> )
-<more-stmts>            09( 'Dim' ) 09( <identifier> ) 09( 'If' ) 09( 'Goto' ) 09( 'While' ) 09( 'TextWindow.Write' ) 09( <identifier> ) 10( <eps> )
+<stmts>                 08( 'Dim' ) 08( <identifier> ) 08( 'If' ) 08( 'Goto' ) 08( 'While' ) 08( 'TextWindow.Write' ) 08( <identifier> ) 08( <int-const> )
+<more-stmts>            09( 'Dim' ) 09( <identifier> ) 09( 'If' ) 09( 'Goto' ) 09( 'While' ) 09( 'TextWindow.Write' ) 09( <identifier> ) 10( <eps> ) 09( <int-constant> )
 <lstmt>                 11( <int-constant> ) 11( <eps> ) 12( <int-constant> ) 12( <eps> )
 <stmt>                  13( 'Dim' ) 14( <identifier> ) 15( 'If' ) 16( 'Goto' ) 17( 'While' ) 18( 'TextWindow.Write' ) 19( <identifier> )
 <label-def>             21( <int-constant> ) 22( <eps> )

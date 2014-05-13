@@ -6,9 +6,9 @@
 #include <QMessageBox>
 
 #include <fstream>
+#include <sstream>
 
 #include <QDebug>
-#include <iostream>
 
 #include "syntax.h"
 
@@ -22,8 +22,10 @@ MainWindow::MainWindow( QWidget *parent )
     , m_open{   new QPushButton{ tr("Open file"), this } }
     , m_exec{   new QPushButton{ tr("Parse" ), this } }
     , m_quit{   new QPushButton{ tr("Quit" ), this } }
+    , m_rules{  new QLabel{ tr(""), this } }
 {
     m_table->setModel( m_model.get() );
+    m_rules->setWordWrap( true );
 
     std::unique_ptr< QHBoxLayout > top_layout{  new QHBoxLayout };
         top_layout->addWidget( m_open.get() );
@@ -36,6 +38,7 @@ MainWindow::MainWindow( QWidget *parent )
     std::unique_ptr< QVBoxLayout > main_layout{ new QVBoxLayout{ this } };
         main_layout->addLayout( top_layout.release() );
         main_layout->addLayout( bottom_layout.release() );
+        main_layout->addWidget( m_rules.get() );
 
     main_layout.release();
 
@@ -73,14 +76,19 @@ void MainWindow::parseFile()
         m_model->setLexems( lexems );
 
         const Table table = createTable();
-        Stack ss; ss.push( { sap::lex::type::RULE, sap::lex::rule::START } );
+        Stack ss;
+        ss.push( { sap::lex::type::COUNT, false } );
+        ss.push( { sap::lex::type::RULE, sap::lex::rule::START } );
         Queue result = parse( table, lexems.begin(), lexems.end(), std::move( ss ) );
 
+        m_rules->setText( QString::null );
+        std::stringstream rules;
+
         while (!result.empty()) {
-            std::cout << result.front() << " → ";
+            rules << result.front() << " -> ";
             result.pop();
         }
-        std::cout << std::endl;
+        m_rules->setText( QString::fromStdString( rules.str() ) );
 
     } catch ( std::exception& ex ) {
         QMessageBox::critical( this, tr("Parse error"), ex.what() );

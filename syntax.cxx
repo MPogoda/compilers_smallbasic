@@ -1,5 +1,7 @@
 #include "syntax.h"
+
 #include <iostream>
+
 namespace sap
 {
 void push_rule( Stack& st, const int rule_number )
@@ -180,23 +182,17 @@ Queue parse( const Table& table, LIterator begin, const LIterator end, Stack ss)
     Queue result;
     while (ss.size() > 1) {
         const bool atEnd = begin == end;
-        // std::cout << "Stack: " << ss.top();
-        // std::cout << ", b " << *begin;
-        // std::cout << '\n';
+
         if (ss.top().type_ == lex::type::COUNT ) {
             break;
         } else if (ss.top().type_ == lex::type::EPS ) {
-            // std::cout << "SKIPPED\n";
             ss.pop();
         } else if (ss.top() == *begin) {
-            // MATCHED SYMBOL
-            // std::cout << "MATCHED\n";
             ++begin;
             ss.pop();
         } else if (lex::type::RULE == ss.top().type_) {
-
             const auto table_top = table.find( ss.top() );
-            if (table.end() == table_top) throw std::logic_error{ "ASD" };
+            if (table.end() == table_top) throw std::logic_error{ "Cannot find rule!" };
             std::pair< MIterator, MIterator > eq;
             if (!atEnd) eq = table_top->second.equal_range( *begin );
             std::pair< MIterator, MIterator > eq_eps = table_top->second.equal_range( { lex::type::EPS, false } );
@@ -210,29 +206,29 @@ Queue parse( const Table& table, LIterator begin, const LIterator end, Stack ss)
             ss.pop();
 
             if (1 == sum_length) {
-                // GOT RULE
                 const uint rule = (length == 0) ? eq_eps.first->second : eq.first->second;
 
+                std::cout << "Rule: " << rule << '\n';
                 result.push( rule );
-                // std::cout << rule << " -> ";
                 push_rule( ss, rule );
             } else { // length > 1
                 if (!atEnd)
                 for (; eq.second != eq.first; ++eq.first) {
                     Stack newSS{ ss };
                     const uint rule = eq.first->second;
+                    std::cout << "Trying Rule: " << rule << '\n';
                     push_rule( newSS, rule );
                     try {
                         Queue subQueue = parse( table, begin, end, std::move( newSS ) );
                         result.push( rule );
-                        // std::cout << rule << " -> ";
+
                         while (!subQueue.empty()) {
                             result.push( subQueue.front());
                             subQueue.pop();
                         }
                         return result;
                     } catch (std::logic_error& ex) {
-                        // std::cout << "failed!\n";
+                        std::cout << "Failed rule!\n";
                         continue;
                     }
                 }
@@ -240,33 +236,32 @@ Queue parse( const Table& table, LIterator begin, const LIterator end, Stack ss)
                 for (; eq_eps.second != eq_eps.first; ++eq_eps.first) {
                     Stack newSS{ ss };
                     const uint rule = eq_eps.first->second;
-                    // std::cout << "Trying " << rule << '\n';
+                    std::cout << "Trying Rule: " << rule << '\n';
                     push_rule( newSS, rule );
                     try {
                         Queue subQueue = parse( table, begin, end, std::move( newSS ) );
                         result.push( rule );
-                        // std::cout << rule << " -> \n";
                         while (!subQueue.empty()) {
                             result.push( subQueue.front());
                             subQueue.pop();
                         }
                         return result;
                     } catch (std::logic_error& ex) {
-                        // std::cout << "failed!\n";
+                        std::cout << "Failed rule!\n";
                         continue;
                     }
                 }
 
 
-                throw std::logic_error{ "ASD" };
+                throw std::logic_error{ "Cannot find rule" };
             }
 
         } else {
-            throw std::logic_error{ "ASD" };
+            throw std::logic_error{ "Cannot find rule!" };
         }
     }
 
-    if (0 != std::distance( begin, end)) throw std::logic_error{ "ASD" };
+    if (0 != std::distance( begin, end)) throw std::logic_error{ "Cannot perform syntax parsing!" };
 
     return result;
 }
@@ -280,6 +275,7 @@ Table createTable()
 
     tmp.insert( { { { lex::type::RESERVED, lex::reserved_word::DIM }, 1 }
                 , { { lex::type::IDENTIFIER, "" }, 1 }
+                , { { lex::type::INT_CONST, 0u }, 1 }
                 , { { lex::type::RESERVED, lex::reserved_word::IF }, 1 }
                 , { { lex::type::RESERVED, lex::reserved_word::GOTO }, 1 }
                 , { { lex::type::RESERVED, lex::reserved_word::WHILE }, 1 }
@@ -294,6 +290,7 @@ Table createTable()
 
     tmp.insert( { { { lex::type::RESERVED, lex::reserved_word::DIM }, 3 }
                 , { { lex::type::IDENTIFIER, "" }, 3 }
+                , { { lex::type::INT_CONST, 0u }, 3 }
                 , { { lex::type::RESERVED, lex::reserved_word::IF }, 3 }
                 , { { lex::type::RESERVED, lex::reserved_word::GOTO }, 3 }
                 , { { lex::type::RESERVED, lex::reserved_word::WHILE }, 3 }
@@ -309,6 +306,7 @@ Table createTable()
 
     tmp.insert( { { { lex::type::RESERVED, lex::reserved_word::DIM }, 4 }
                 , { { lex::type::IDENTIFIER, "" }, 4 }
+                , { { lex::type::INT_CONST, 0u }, 4 }
                 , { { lex::type::RESERVED, lex::reserved_word::IF }, 4 }
                 , { { lex::type::RESERVED, lex::reserved_word::GOTO }, 4 }
                 , { { lex::type::RESERVED, lex::reserved_word::WHILE }, 4 }
@@ -323,6 +321,7 @@ Table createTable()
 
     tmp.insert( { { { lex::type::RESERVED, lex::reserved_word::DIM }, 5 }
                 , { { lex::type::IDENTIFIER, "" }, 5 }
+                , { { lex::type::INT_CONST, 0u }, 5 }
                 , { { lex::type::RESERVED, lex::reserved_word::IF }, 5 }
                 , { { lex::type::RESERVED, lex::reserved_word::GOTO }, 5 }
                 , { { lex::type::RESERVED, lex::reserved_word::WHILE }, 5 }
@@ -346,6 +345,7 @@ Table createTable()
 
     tmp.insert( { { { lex::type::RESERVED, lex::reserved_word::DIM }, 8 }
                 , { { lex::type::IDENTIFIER, "" }, 8 }
+                , { { lex::type::INT_CONST, 0u }, 8 }
                 , { { lex::type::RESERVED, lex::reserved_word::IF }, 8 }
                 , { { lex::type::RESERVED, lex::reserved_word::GOTO }, 8 }
                 , { { lex::type::RESERVED, lex::reserved_word::WHILE }, 8 }
@@ -359,6 +359,7 @@ Table createTable()
 
     tmp.insert( { { { lex::type::RESERVED, lex::reserved_word::DIM }, 9 }
                 , { { lex::type::IDENTIFIER, "" }, 9 }
+                , { { lex::type::INT_CONST, 0u }, 9 }
                 , { { lex::type::RESERVED, lex::reserved_word::IF }, 9 }
                 , { { lex::type::RESERVED, lex::reserved_word::GOTO }, 9 }
                 , { { lex::type::RESERVED, lex::reserved_word::WHILE }, 9 }

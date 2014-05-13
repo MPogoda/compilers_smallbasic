@@ -4,6 +4,7 @@
 #include <QTableView>
 #include <QTextEdit>
 #include <QPushButton>
+#include <QLabel>
 
 #include <memory>
 
@@ -24,6 +25,7 @@ private:
     std::unique_ptr< QPushButton >  m_open;
     std::unique_ptr< QPushButton >  m_exec;
     std::unique_ptr< QPushButton >  m_quit;
+    std::unique_ptr< QLabel      >  m_rules;
 private slots:
     void openFile();
     void parseFile();
