@@ -67,7 +67,7 @@
 
 45. <compare-int> → '<'
 46. <compare-int> → '>'
-47. <compare-int> → <logic-equals>
+47. <compare-int> → '='
 
 48. <logic-equals> → '='
 49. <logic-equals> → '<>'
