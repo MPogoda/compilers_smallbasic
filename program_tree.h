@@ -1,7 +1,6 @@
 #pragma once
 
 #include "lexeme.h"
-#include "parse.h"
 #include "syntax.h"
 
 #include <vector>
@@ -18,7 +17,7 @@ struct Assertion
 
 struct Node : private Assertion
 {
-    const lex::rule rule_;
+    lex::rule rule_;
     using Nodes = std::vector< Node >;
     using Value = boost::variant< lex, Nodes >;
     Value value_;

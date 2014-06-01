@@ -11,6 +11,7 @@
 #include <QDebug>
 
 #include "syntax.h"
+#include "program_tree.h"
 
 namespace sap
 {
@@ -82,13 +83,19 @@ void MainWindow::parseFile()
         Queue result = parse( table, lexems.begin(), lexems.end(), std::move( ss ) );
 
         m_rules->setText( QString::null );
-        std::stringstream rules;
 
-        while (!result.empty()) {
-            rules << result.front() << " -> ";
-            result.pop();
-        }
-        m_rules->setText( QString::fromStdString( rules.str() ) );
+        LIterator it = lexems.begin();
+
+        Node node{ result, it };
+        std::cout << node << std::endl;
+
+        // std::stringstream rules;
+        //
+        // while (!result.empty()) {
+        //     rules << result.front() << " -> ";
+        //     result.pop();
+        // }
+        // m_rules->setText( QString::fromStdString( rules.str() ) );
 
     } catch ( std::exception& ex ) {
         QMessageBox::critical( this, tr("Parse error"), ex.what() );
