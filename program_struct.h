@@ -189,6 +189,13 @@ using SubCall = std::string;
 struct If;
 struct While;
 
+struct Dim : private RuleAssertion< lex::rule::DIM_EXPR >
+{
+    Identifier var_;
+
+    Dim( const Node& i_node, LocalScope& i_scope );
+}; // struct Dim
+
 using Sline = boost::variant< Assignment, SubCall, Goto, Write, If, While >;
 
 struct Line : private RuleAssertion< lex::rule::LSTMT >
