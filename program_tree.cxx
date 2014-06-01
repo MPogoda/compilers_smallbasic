@@ -112,10 +112,6 @@ lex::rule getRule( const uint i_rule )
             return lex::rule::WHILE_STMT;
         case 62:
             return lex::rule::WRITE_STMT;
-        case 63:
-        case 64:
-        case 65:
-            return lex::rule::WRITEABLE;
         case 66:
             return lex::rule::SUB_CALL_STMT;
         case 67:
@@ -227,10 +223,7 @@ int getCount( const uint i_rule )
         case 61:
             return 2;
         case 62:
-        case 63:
-        case 64:
             return 1;
-        case 65:
         case 66:
         case 67:
             return 0;

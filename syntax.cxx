@@ -142,13 +142,10 @@ void push_rule( Stack& st, const int rule_number )
                  break;
         case 62: st.push( { lex::type::NEWLINE, 0u });
                  st.push( { lex::type::SYMBOL, lex::symbol::R_PARENTHESIS });
-                 st.push( { lex::type::RULE, lex::rule::WRITEABLE });
+                 st.push( { lex::type::RULE, lex::rule::RIGHTSIDE });
                  st.push( { lex::type::SYMBOL, lex::symbol::L_PARENTHESIS });
                  st.push( { lex::type::RESERVED, lex::reserved_word::WRITE });
                  break;
-        case 63: st.push( { lex::type::RULE, lex::rule::INT_EXPR }); break;
-        case 64: st.push( { lex::type::RULE, lex::rule::LOGIC }); break;
-        case 65: st.push( { lex::type::STR_CONST, "" }); break;
         case 66: st.push( { lex::type::NEWLINE, 0u });
                  st.push( { lex::type::SYMBOL, lex::symbol::R_PARENTHESIS });
                  st.push( { lex::type::SYMBOL, lex::symbol::L_PARENTHESIS });
@@ -603,19 +600,6 @@ Table createTable()
     result.insert( { { lex::type::RULE, lex::rule::WRITE_STMT }
                    , std::move( tmp ) } );
     tmp.clear();
-
-
-    tmp.insert( { { { lex::type::INT_CONST, 0u }, 63 }
-                , { { lex::type::IDENTIFIER, "" }, 63 }
-                , { { lex::type::BOOL_CONST, false }, 64 }
-                , { { lex::type::IDENTIFIER, "" }, 64 }
-                , { { lex::type::STR_CONST, "" }, 65 }
-                }
-            );
-    result.insert( { { lex::type::RULE, lex::rule::WRITEABLE }
-                   , std::move( tmp ) } );
-    tmp.clear();
-
 
     tmp.insert( { { lex::type::IDENTIFIER, "" }, 66 });
     result.insert( { { lex::type::RULE, lex::rule::SUB_CALL_STMT }

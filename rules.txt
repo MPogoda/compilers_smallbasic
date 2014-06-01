@@ -98,11 +98,7 @@
                     <stmts>
                 'EndWhile' '\n'
 
-62. <write-stmt> → 'TextWindow.Write' '(' <writeable> ')' '\n'
-
-63. <writeable> → <int-expr>
-64. <writeable> → <logic>
-65. <writeable> → <string-constant>
+62. <write-stmt> → 'TextWindow.Write' '(' <rightside> ')' '\n'
 
 66. <sub-call-stmt> → <identifier> '(' ')' '\n'
 
@@ -140,5 +136,4 @@
 <goto-stmt>             60( 'Goto' )
 <while-stmt>            61( 'While' )
 <write-stmt>            62( 'TextWindow.Write' )
-<writeable>             63( <int-constant> ) 63( <identifier> ) 64( <bool-constant> ) 64( <identifier> ) 64( <string-constant> ) 65( <string-constant> )
 <sub-call-stmt>         66( <identifier> )

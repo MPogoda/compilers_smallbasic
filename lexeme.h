@@ -57,7 +57,6 @@ struct lex
         , GOTO_STMT
         , WHILE_STMT
         , WRITE_STMT
-        , WRITEABLE
         , SUB_CALL_STMT
         , NEW_IDENTIFIER
 
