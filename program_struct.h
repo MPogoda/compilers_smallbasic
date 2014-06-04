@@ -60,6 +60,7 @@ struct LocalScope
     LocalScope( const Identifiers& i_blocked );
     bool addVariable( const std::string& i_name );
     bool useVariable( const std::string& i_name ) const;
+    bool declareVariable( const std::string& i_name ) const;
     bool useArray( const std::string& i_name ) const;
     bool declareArray( const std::string& i_name ) const;
     LocalScope& addScope();
@@ -163,9 +164,9 @@ using Rightside = boost::variant< Logic, IntExpr, Input, std::string >;
 
 struct Assignment : private RuleAssertion< lex::rule::ASSIGNMENT >
 {
-    std::string lhs_;
+    Id          lhs_;
     Rightside   rhs_;
-    Assignment( const Node& i_node, LocalScope& i_scope );
+    Assignment( const Node& i_node, const LocalScope& i_scope );
 }; // struct Assignment
 
 struct Goto : private RuleAssertion< lex::rule::GOTO_STMT >

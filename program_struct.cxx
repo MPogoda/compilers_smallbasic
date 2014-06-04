@@ -140,6 +140,27 @@ bool LocalScope::useArray( const std::string& i_name ) const
     return result;
 }
 
+bool LocalScope::declareArray( const std::string& i_name ) const
+{
+    const bool isLocal = std::find( variables_.cbegin(), variables_.cend(), i_name ) != variables_.cend();
+
+    if (isLocal) return false;
+
+    const bool result = GlobalScope::instance().declare( i_name, IDType::Array );
+
+    return result;
+}
+
+bool LocalScope::declareVariable( const std::string& i_name ) const
+{
+    const bool isLocal = std::find( variables_.cbegin(), variables_.cend(), i_name ) != variables_.cend();
+
+    if (isLocal) return true;
+
+    const bool result = GlobalScope::instance().declare( i_name, IDType::Variable );
+
+    return result;
+}
 LocalScope& LocalScope::addScope()
 {
     scopes_.emplace_back( variables_ );
@@ -357,4 +378,55 @@ Logic parseLogic( const Node& i_node, const LocalScope& i_scope )
     }
 }
 
-} // namespace sa
+Input::Input( const Node& i_node )
+    : RuleAssertion{ i_node }
+{
+    assert( lex::type::EPS == boost::get< lex >( i_node.value_ ).type_ );
+}
+
+Rightside parseRightside( const Node& i_node, const LocalScope& i_scope )
+{
+    DBG( '!' );
+    RuleAssertion< lex::rule::RIGHTSIDE > assertion{ i_node };
+
+    if (const auto nodes = boost::get< Node::Nodes >( &i_node.value_ ) ) {
+        assert( 1 == nodes->size() );
+
+        const auto& child = (*nodes)[ 0 ];
+        switch (child.rule_) {
+            case lex::rule::LOGIC:
+                return parseLogic( child, i_scope );
+            case lex::rule::INT_EXPR:
+                return IntExpr{ child, i_scope };
+            case lex::rule::READ_STMT:
+                return Input{ child };
+            default:
+                DEBUG( child.rule_ );
+                assert( !"Wrong child node!" );
+        }
+    } else {
+        const auto ll = boost::get< lex >( i_node.value_ );
+        assert( lex::type::STR_CONST == ll.type_ );
+
+        return boost::get< std::string >( ll.value_ );
+    }
+}
+
+Assignment::Assignment( const Node& i_node, const LocalScope& i_scope )
+    : RuleAssertion{ i_node }
+{
+    const auto& nodes = boost::get< Node::Nodes >( i_node.value_ );
+    assert( 2 == nodes.size() );
+
+    lhs_ = parseId( nodes[ 0 ], i_scope );
+    rhs_ = parseRightside( nodes[ 1 ], i_scope );
+
+    if (const auto lhs_id = boost::get< std::string>( &lhs_ )) {
+        i_scope.declareVariable( *lhs_id );
+    } else {
+        const auto arr = boost::get< ArrayElement >( lhs_ );
+        i_scope.declareArray( arr.lhs_ );
+    }
+}
+
+} // namespace sap
