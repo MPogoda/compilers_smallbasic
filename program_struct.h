@@ -21,26 +21,20 @@ using Identifier  = Identifiers::const_iterator;
 using Labels      = std::set< uint >;
 using Label       = boost::optional< Labels::const_iterator >;
 
+enum class IDType { Procedure, Array, Variable };
+using TypeMap = std::map< std::string, IDType >;
+
 struct GlobalScope
 {
-    Identifiers declaredProcedures_;
-    Identifiers usedProcedures_;
-
-    Identifiers declaredVariables_;
-    Identifiers usedVariables_;
-
-    Identifiers declaredArrays_;
-    Identifiers usedArrays_;
+    TypeMap declared_;
+    TypeMap used_;
 
     Labels      declaredLabels_;
     Labels      usedLabels_;
 
-    bool addDeclaredProcedure( const std::string& i_name );
-    bool addUsedProcedure( const std::string& i_name );
-    bool addDeclaredVariable( const std::string& i_name );
-    bool addUsedVariable( const std::string& i_name );
-    bool addDeclaredArray( const std::string& i_name );
-    bool addUsedArray( const std::string& i_name );
+    bool declare( const std::string& i_name, IDType i_type );
+    bool use( const std::string& i_name, IDType i_type );
+    bool has( const std::string& i_name ) const;
 
     bool checkNames() const;
 
@@ -48,10 +42,8 @@ struct GlobalScope
     bool addUsedLabel( uint i_label );
 
     static GlobalScope& instance();
-
-    bool isNameFree( const std::string& i_name ) const;
 private:
-    GlobalScope();
+    GlobalScope() = default;
     GlobalScope( const GlobalScope& ) = delete;
     GlobalScope( GlobalScope&& ) = delete;
     GlobalScope& operator=( const GlobalScope& ) = delete;
@@ -65,7 +57,11 @@ struct LocalScope
     Identifiers variables_;
     LocalScopes scopes_;
 
+    LocalScope( const Identifiers& i_blocked );
     bool addVariable( const std::string& i_name );
+    bool useVariable( const std::string& i_name ) const;
+    bool useArray( const std::string& i_name ) const;
+    bool declareArray( const std::string& i_name ) const;
     LocalScope& addScope();
 }; // struct LocalScope
 
@@ -90,15 +86,15 @@ struct OperandInt : private RuleAssertion< lex::rule::OPERAND_INT >
     using Value = boost::variant< int, Id >;
     Value value_;
 
-    OperandInt( const Node& i_node, LocalScope& i_scope );
+    OperandInt( const Node& i_node, const LocalScope& i_scope );
 }; // struct OperantInt
 
 struct ArrayElement : private RuleAssertion< lex::rule::ID >
 {
     std::string lhs_;
-    Id          rhs_;
+    OperandInt  rhs_;
 
-    ArrayElement( const Node& i_node, LocalScope& i_scope );
+    ArrayElement( const Node& i_node, const LocalScope& i_scope );
 }; // struct ArrayElement
 
 struct OperandBool : private RuleAssertion< lex::rule::OPERAND_BOOL >
@@ -106,7 +102,7 @@ struct OperandBool : private RuleAssertion< lex::rule::OPERAND_BOOL >
     using Value = boost::variant< bool, Id >;
     Value value_;
 
-    OperandBool( const Node& i_node, LocalScope& i_scope );
+    OperandBool( const Node& i_node, const LocalScope& i_scope );
 }; // struct OperandBool
 
 struct OperandStr : private RuleAssertion< lex::rule::OPERAND_STR >
@@ -114,7 +110,7 @@ struct OperandStr : private RuleAssertion< lex::rule::OPERAND_STR >
     using Value = boost::variant< std::string, Id >;
     Value value_;
 
-    OperandStr( const Node& i_node, LocalScope& i_scope );
+    OperandStr( const Node& i_node, const LocalScope& i_scope );
 }; // struct OperandStr
 
 struct IntExpr : private RuleAssertion< lex::rule::INT_EXPR >
@@ -124,7 +120,7 @@ struct IntExpr : private RuleAssertion< lex::rule::INT_EXPR >
     boost::optional< Op >           op_;
     boost::optional< OperandInt >   rhs_;
 
-    IntExpr( const Node& i_node, LocalScope& i_scope );
+    IntExpr( const Node& i_node, const LocalScope& i_scope );
 }; // struct IntExpr
 
 enum class Cmp { EQ, NE, LE, GE };
@@ -135,7 +131,7 @@ struct LogicBool : private RuleAssertion< lex::rule::LOGIC_BOOL >
     boost::optional< Cmp >          cmp_;
     boost::optional< OperandBool >  rhs_;
 
-    LogicBool( const Node& i_node, LocalScope& i_scope );
+    LogicBool( const Node& i_node, const LocalScope& i_scope );
 }; // struct LogicBool
 
 struct LogicInt : private RuleAssertion< lex::rule::LOGIC_INT >
@@ -144,7 +140,7 @@ struct LogicInt : private RuleAssertion< lex::rule::LOGIC_INT >
     Cmp         cmp_;
     OperandInt  rhs_;
 
-    LogicInt( const Node& i_node, LocalScope& i_scope );
+    LogicInt( const Node& i_node, const LocalScope& i_scope );
 }; // struct LogicInt
 
 struct LogicStr : private RuleAssertion< lex::rule::LOGIC_STR >
@@ -153,7 +149,7 @@ struct LogicStr : private RuleAssertion< lex::rule::LOGIC_STR >
     Cmp         cmp_;
     OperandStr  rhs_;
 
-    LogicStr( const Node& i_node, LocalScope& i_scope );
+    LogicStr( const Node& i_node, const LocalScope& i_scope );
 }; // struct LogicStr
 
 using Logic = boost::variant< LogicBool, LogicInt, LogicStr >;
