@@ -12,20 +12,21 @@
 
 #include "syntax.h"
 #include "program_tree.h"
+#include "program_struct.h"
 
 namespace sap
 {
 MainWindow::MainWindow( QWidget *parent )
     : QWidget{  parent }
-    , m_table{  new QTableView{ this } }
-    , m_model{  new LexemsModel{ this } }
+    // , m_table{  new QTableView{ this } }
+    // , m_model{  new LexemsModel{ this } }
     , m_text{   new QTextEdit{ this } }
     , m_open{   new QPushButton{ tr("Open file"), this } }
     , m_exec{   new QPushButton{ tr("Parse" ), this } }
     , m_quit{   new QPushButton{ tr("Quit" ), this } }
     , m_rules{  new QLabel{ tr(""), this } }
 {
-    m_table->setModel( m_model.get() );
+    // m_table->setModel( m_model.get() );
     m_rules->setWordWrap( true );
 
     std::unique_ptr< QHBoxLayout > top_layout{  new QHBoxLayout };
@@ -34,12 +35,12 @@ MainWindow::MainWindow( QWidget *parent )
         top_layout->addWidget( m_quit.get() );
     std::unique_ptr< QHBoxLayout > bottom_layout{  new QHBoxLayout };
         bottom_layout->addWidget( m_text.get() );
-        bottom_layout->addWidget( m_table.get() );
+        bottom_layout->addWidget( m_rules.get() );
 
     std::unique_ptr< QVBoxLayout > main_layout{ new QVBoxLayout{ this } };
         main_layout->addLayout( top_layout.release() );
         main_layout->addLayout( bottom_layout.release() );
-        main_layout->addWidget( m_rules.get() );
+        // main_layout->addWidget( m_rules.get() );
 
     main_layout.release();
 
@@ -74,7 +75,7 @@ void MainWindow::parseFile()
 
     try {
         Lexems lexems = sap::parse( str );
-        m_model->setLexems( lexems );
+        // m_model->setLexems( lexems );
 
         const Table table = createTable();
         Stack ss;
@@ -86,8 +87,18 @@ void MainWindow::parseFile()
 
         LIterator it = lexems.begin();
 
+        GlobalScope::instance().reset();
         Node node{ result, it };
         std::cout << node << std::endl;
+        Program p{ node };
+        std::cout << GlobalScope::instance() << '\n';
+
+        std::stringstream text;
+        text << GlobalScope::instance();
+        m_rules->setText( QString::fromStdString( text.str() ) );
+
+
+
 
         // std::stringstream rules;
         //

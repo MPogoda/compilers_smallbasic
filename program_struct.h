@@ -10,6 +10,8 @@
     #include <iostream>
 #endif
 
+#include <iosfwd>
+
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
 
@@ -24,8 +26,32 @@ using Label       = boost::optional< Labels::const_iterator >;
 enum class IDType { Procedure, Array, Variable };
 using TypeMap = std::map< std::string, IDType >;
 
+struct LocalScope
+{
+    using LocalScopes = std::list< LocalScope >;
+
+    Identifiers variables_;
+    LocalScopes scopes_;
+
+    LocalScope( const Identifiers& i_blocked = {});
+    Identifier addVariable( const std::string& i_name );
+    bool useVariable( const std::string& i_name ) const;
+    bool declareVariable( const std::string& i_name ) const;
+    bool useArray( const std::string& i_name ) const;
+    bool declareArray( const std::string& i_name ) const;
+    bool useProc( const std::string& i_name ) const;
+    bool declareProc( const std::string& i_name ) const;
+    LocalScope& addScope();
+
+    void reset();
+}; // struct LocalScope
+
+std::ostream& operator<<( std::ostream& out, const LocalScope& scope );
+
 struct GlobalScope
 {
+    LocalScope scope_;
+
     TypeMap declared_;
     TypeMap used_;
 
@@ -36,12 +62,12 @@ struct GlobalScope
     bool use( const std::string& i_name, IDType i_type );
     bool has( const std::string& i_name ) const;
 
-    bool checkNames() const;
-
     bool addDeclaredLabel( uint i_label );
     bool addUsedLabel( uint i_label );
 
     static GlobalScope& instance();
+
+    void reset();
 private:
     GlobalScope() = default;
     GlobalScope( const GlobalScope& ) = delete;
@@ -50,23 +76,7 @@ private:
     GlobalScope& operator=( GlobalScope&& ) = delete;
 }; // struct Scope
 
-struct LocalScope
-{
-    using LocalScopes = std::list< LocalScope >;
-
-    Identifiers variables_;
-    LocalScopes scopes_;
-
-    LocalScope( const Identifiers& i_blocked );
-    Identifier addVariable( const std::string& i_name );
-    bool useVariable( const std::string& i_name ) const;
-    bool declareVariable( const std::string& i_name ) const;
-    bool useArray( const std::string& i_name ) const;
-    bool declareArray( const std::string& i_name ) const;
-    bool useProc( const std::string& i_name ) const;
-    bool declareProc( const std::string& i_name ) const;
-    LocalScope& addScope();
-}; // struct LocalScope
+std::ostream& operator<<( std::ostream& out, const GlobalScope& scope );
 
 template < lex::rule Rule >
 struct RuleAssertion
@@ -241,7 +251,6 @@ using AnyLine = boost::variant< Line, SubDecl >;
 using AnyLines = std::vector< AnyLine >;
 struct Program : private RuleAssertion< lex::rule::START >
 {
-    LocalScope  local_;
     AnyLines    body_;
 
     Program( const Node& i_node );
