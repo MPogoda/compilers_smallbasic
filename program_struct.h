@@ -58,11 +58,13 @@ struct LocalScope
     LocalScopes scopes_;
 
     LocalScope( const Identifiers& i_blocked );
-    bool addVariable( const std::string& i_name );
+    Identifier addVariable( const std::string& i_name );
     bool useVariable( const std::string& i_name ) const;
     bool declareVariable( const std::string& i_name ) const;
     bool useArray( const std::string& i_name ) const;
     bool declareArray( const std::string& i_name ) const;
+    bool useProc( const std::string& i_name ) const;
+    bool declareProc( const std::string& i_name ) const;
     LocalScope& addScope();
 }; // struct LocalScope
 
@@ -178,7 +180,7 @@ struct Goto : private RuleAssertion< lex::rule::GOTO_STMT >
 struct Write : private RuleAssertion< lex::rule::WRITE_STMT >
 {
     Rightside rhs_;
-    Write( const Node& i_node, LocalScope& i_scope );
+    Write( const Node& i_node, const LocalScope& i_scope );
 }; // struct Write
 
 using SubCall = std::string;
@@ -193,12 +195,12 @@ struct Dim : private RuleAssertion< lex::rule::DIM_EXPR >
     Dim( const Node& i_node, LocalScope& i_scope );
 }; // struct Dim
 
-using Sline = boost::variant< Assignment, SubCall, Goto, Write, If, While >;
+using Sline = boost::variant< Assignment, SubCall, Goto, Write, If, While, Dim >;
 
 struct Line : private RuleAssertion< lex::rule::LSTMT >
 {
-    boost::optional< uint > label_;
-    Sline                   line_;
+    boost::optional< uint >     label_;
+    boost::optional< Sline >    line_;
 
     Line( const Node& i_node, LocalScope& i_scope );
 }; // private Line

@@ -118,15 +118,15 @@ bool LocalScope::useVariable( const std::string& i_name ) const
     else return GlobalScope::instance().use( i_name, IDType::Variable );
 }
 
-bool LocalScope::addVariable( const std::string& i_name )
+Identifier LocalScope::addVariable( const std::string& i_name )
 {
     const bool isLocal = std::find( variables_.cbegin(), variables_.cend(), i_name ) != variables_.cend();
     const bool isGlobal = GlobalScope::instance().has( i_name );
 
-    if (isLocal || isGlobal) return false;
+    if (isLocal || isGlobal) throw std::logic_error{ "Cannot add local variable!" };
 
     variables_.push_back( i_name );
-    return true;
+    return std::next( variables_.cbegin(), variables_.size() - 1 );
 }
 
 bool LocalScope::useArray( const std::string& i_name ) const
@@ -161,6 +161,29 @@ bool LocalScope::declareVariable( const std::string& i_name ) const
 
     return result;
 }
+
+bool LocalScope::useProc( const std::string& i_name ) const
+{
+    const bool isLocal = std::find( variables_.cbegin(), variables_.cend(), i_name ) != variables_.cend();
+
+    if (isLocal) return false;
+
+    const bool result = GlobalScope::instance().use( i_name, IDType::Procedure );
+
+    return result;
+}
+
+bool LocalScope::declareProc( const std::string& i_name ) const
+{
+    const bool isLocal = std::find( variables_.cbegin(), variables_.cend(), i_name ) != variables_.cend();
+
+    if (isLocal) return false;
+
+    const bool result = GlobalScope::instance().declare( i_name, IDType::Procedure );
+
+    return result;
+}
+
 LocalScope& LocalScope::addScope()
 {
     scopes_.emplace_back( variables_ );
@@ -421,12 +444,176 @@ Assignment::Assignment( const Node& i_node, const LocalScope& i_scope )
     lhs_ = parseId( nodes[ 0 ], i_scope );
     rhs_ = parseRightside( nodes[ 1 ], i_scope );
 
+    bool result = false;
     if (const auto lhs_id = boost::get< std::string>( &lhs_ )) {
-        i_scope.declareVariable( *lhs_id );
+        result = i_scope.declareVariable( *lhs_id );
     } else {
         const auto arr = boost::get< ArrayElement >( lhs_ );
-        i_scope.declareArray( arr.lhs_ );
+        result = i_scope.declareArray( arr.lhs_ );
+    }
+
+    if (!result)
+        throw std::logic_error{ "Cannot declare variable or array!" };
+}
+
+Goto::Goto( const Node& i_node )
+    : RuleAssertion{ i_node }
+{
+    const auto ll = boost::get< lex >( i_node.value_ );
+    assert( lex::type::INT_CONST == ll.type_ );
+
+    to_ = boost::get< uint >( ll.value_ );
+    if (!GlobalScope::instance().addUsedLabel( to_ ))
+        throw std::logic_error{ "Cannot use label!" };
+}
+
+SubCall parseSubCall( const Node& i_node, const LocalScope& i_scope )
+{
+    RuleAssertion< lex::rule::SUB_CALL_STMT > assertion{ i_node };
+
+    const auto ll = boost::get< lex >( i_node.value_ );
+    assert( lex::type::IDENTIFIER == ll.type_ );
+
+    const std::string subName = boost::get< std::string >( ll.value_ );
+
+    if (!i_scope.useProc( subName ))
+        throw std::logic_error{ "Cannot call procedure!" };
+
+    return subName;
+}
+
+Write::Write( const Node& i_node, const LocalScope& i_scope )
+    : RuleAssertion{ i_node }
+{
+    const auto& nodes = boost::get< Node::Nodes >( i_node.value_ );
+    assert( 1 == nodes.size() );
+
+    rhs_ = parseRightside( nodes[ 0 ], i_scope );
+}
+
+Dim::Dim( const Node& i_node, LocalScope& i_scope )
+    : RuleAssertion{ i_node }
+{
+    const auto ll = boost::get< lex >( i_node.value_ );
+    assert( lex::type::IDENTIFIER == ll.type_ );
+
+    const std::string varName = boost::get< std::string >( ll.value_ );
+    var_ = i_scope.addVariable( varName );
+}
+
+Sline parseSline( const Node& i_node, LocalScope& i_scope )
+{
+    const RuleAssertion< lex::rule::STMT > assertion{ i_node };
+
+    const auto& nodes = boost::get< Node::Nodes >( i_node.value_ );
+    assert( 1 == nodes.size() );
+
+    const auto& child = nodes[ 0 ];
+    switch (child.rule_) {
+        case lex::rule::DIM_EXPR:
+            return Dim{ child, i_scope };
+        case lex::rule::ASSIGNMENT:
+            return Assignment{ child, i_scope };
+        case lex::rule::WRITE_STMT:
+            return Write{ child, i_scope };
+        case lex::rule::IF_STMT:
+            return If{ child, i_scope };
+        case lex::rule::WHILE_STMT:
+            return While{ child, i_scope };
+        case lex::rule::SUB_CALL_STMT:
+            return parseSubCall( child, i_scope );
+        case lex::rule::GOTO_STMT:
+            return Goto{ child };
+        default:
+            DEBUG( child.rule_ );
+            assert( !"Wrong child node!" );
     }
 }
 
+boost::optional< uint > parseLabel( const Node& i_node )
+{
+    RuleAssertion< lex::rule::LABEL_DEF > assertion{ i_node };
+
+    const auto ll = boost::get< lex >( i_node.value_ );
+    if (lex::type::INT_CONST == ll.type_)
+        return boost::get< uint >( ll.value_ );
+    else
+        assert( lex::type::EPS == ll.type_ );
+
+    return {};
+}
+
+Line::Line( const Node& i_node, LocalScope& i_scope )
+    : RuleAssertion{ i_node }
+{
+    const auto& nodes = boost::get< Node::Nodes >( i_node.value_ );
+    assert( !nodes.empty());
+
+    label_ = parseLabel( nodes[ 0 ] );
+    if (2 == nodes.size())
+        line_ = parseSline( nodes[ 1 ], i_scope );
+    else
+        assert( false );
+}
+
+Lines parseLines( const Node& i_node, LocalScope& i_scope )
+{
+    const RuleAssertion< lex::rule::STMTS > assertion{ i_node };
+
+    Lines result;
+
+    auto pnode = &i_node;
+    while (const auto* nodes = boost::get< Node::Nodes >( &pnode->value_ )) {
+        assert( 2 == nodes->size() );
+
+        result.emplace_back( (*nodes)[ 0 ], i_scope );
+
+        const RuleAssertion< lex::rule::MORE_STMTS > assertion{ (*nodes)[1] };
+        pnode = &(*nodes)[1];
+        if (const auto subnodes = boost::get< Node::Nodes >( &pnode->value_)) {
+            assert( subnodes->size() == 1);
+            pnode = &(*subnodes)[ 0 ];
+            const RuleAssertion< lex::rule::STMTS > assertion( *pnode );
+        } else {
+            break;
+        }
+    }
+
+    assert( lex::type::EPS == boost::get< lex >( pnode->value_ ).type_ );
+
+    return result;
+}
+
+
+Lines parseElse( const Node& i_node, LocalScope& i_scope )
+{
+    const RuleAssertion< lex::rule::ELSE_PART > assertion{ i_node };
+
+    if (const auto nodes = boost::get< Node::Nodes >( &i_node.value_ )) {
+        assert( 1 == nodes->size() );
+        return parseLines( (*nodes)[ 0 ], i_scope );
+    }
+
+    assert( lex::type::EPS == boost::get< lex >( i_node.value_ ).type_ );
+
+    return {};
+}
+
+If::If( const Node& i_node, LocalScope& i_scope )
+    : RuleAssertion{ i_node }
+    , logic_{ parseLogic( boost::get< Node::Nodes >( i_node.value_ )[ 0 ], i_scope ) }
+    , thenScope_( i_scope.addScope() )
+    , then_( parseLines( boost::get< Node::Nodes >( i_node.value_ )[ 1 ], thenScope_ ) )
+    , elseScope_( i_scope.addScope() )
+    , else_( parseElse( boost::get< Node::Nodes >( i_node.value_ )[ 2 ], elseScope_ ) )
+{
+}
+
+While::While( const Node& i_node, LocalScope& i_scope )
+    : RuleAssertion{ i_node }
+    , logic_{ parseLogic( boost::get< Node::Nodes >( i_node.value_ )[ 0 ], i_scope ) }
+    , localScope_( i_scope.addScope() )
+    , body_( parseLines( boost::get< Node::Nodes >( i_node.value_ )[ 1 ], localScope_ ) )
+{
+}
 } // namespace sap
