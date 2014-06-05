@@ -82,7 +82,8 @@ struct RuleAssertion
 };
 
 struct ArrayElement;
-using Id = boost::variant< std::string, ArrayElement >;
+using Id = boost::variant< std::string, boost::recursive_wrapper< ArrayElement > >;
+// using Id = boost::variant< std::string, ArrayElement >;
 
 struct OperandInt : private RuleAssertion< lex::rule::OPERAND_INT >
 {
@@ -195,7 +196,8 @@ struct Dim : private RuleAssertion< lex::rule::DIM_EXPR >
     Dim( const Node& i_node, LocalScope& i_scope );
 }; // struct Dim
 
-using Sline = boost::variant< Assignment, SubCall, Goto, Write, If, While, Dim >;
+using Sline = boost::variant< Assignment, SubCall, Goto, Write, boost::recursive_wrapper< If >, boost::recursive_wrapper< While >, Dim >;
+// using Sline = boost::variant< Assignment, SubCall, Goto, Write, If , While , Dim >;
 
 struct Line : private RuleAssertion< lex::rule::LSTMT >
 {

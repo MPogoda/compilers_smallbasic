@@ -192,23 +192,27 @@ LocalScope& LocalScope::addScope()
 }
 
 Id parseId( const Node& i_node, const LocalScope& i_scope );
-
-OperandInt::OperandInt( const Node& i_node, const LocalScope& i_scope )
-    : RuleAssertion{ i_node }
+OperandInt::Value parseInt( const Node& i_node, const LocalScope& i_scope )
 {
     if (const auto plex = boost::get< lex >( &i_node.value_ )) {
         assert( lex::type::INT_CONST == plex->type_ );
-        value_ = boost::get< uint >( plex->value_ );
+        return boost::get< uint >( plex->value_ );
     } else {
         const auto& nodes = boost::get< Node::Nodes >( i_node.value_ );
         assert( 1 == nodes.size() );
 
-        value_ = parseId( nodes[ 0 ], i_scope );
+        return parseId( nodes[ 0 ], i_scope );
     }
+}
+OperandInt::OperandInt( const Node& i_node, const LocalScope& i_scope )
+    : RuleAssertion{ i_node }
+    , value_{ parseInt( i_node, i_scope ) }
+{
 }
 
 ArrayElement::ArrayElement( const Node& i_node, const LocalScope& i_scope )
     : RuleAssertion{ i_node }
+    , rhs_{ boost::get< Node::Nodes >( i_node.value_ )[ 1], i_scope }
 {
     const auto& nodes = boost::get< Node::Nodes >( i_node.value_ );
     assert( 2 == nodes.size() );
@@ -224,8 +228,6 @@ ArrayElement::ArrayElement( const Node& i_node, const LocalScope& i_scope )
         if (!i_scope.useArray( lhs_ ))
             throw std::logic_error{ "Cannot use array!" };
     }
-
-    rhs_ = OperandInt{ nodes[ 1 ], i_scope };
 }
 
 Id parseId( const Node& i_node, const LocalScope& i_scope )
@@ -300,10 +302,11 @@ IntExpr::Op parseOp( const Node& op_node )
 
 IntExpr::IntExpr( const Node& i_node, const LocalScope& i_scope )
     : RuleAssertion{ i_node }
+    , lhs_{ boost::get< Node::Nodes >( i_node.value_ )[ 0 ], i_scope }
 {
     const auto& nodes = boost::get< Node::Nodes >( i_node.value_ );
     assert( !nodes.empty());
-    lhs_ = OperandInt{ nodes[ 0 ], i_scope };
+
     if (nodes.size() == 3) {
         op_ = parseOp( nodes[ 1 ] );
         rhs_ = OperandInt{ nodes[ 2], i_scope };
@@ -345,10 +348,11 @@ Cmp parseCmp( const Node& i_node )
 
 LogicBool::LogicBool( const Node& i_node, const LocalScope& i_scope )
     : RuleAssertion{ i_node }
+    , lhs_{ boost::get< Node::Nodes >( i_node.value_ )[ 0 ], i_scope }
 {
     const auto& nodes = boost::get< Node::Nodes >( i_node.value_ );
     assert( !nodes.empty());
-    lhs_ = OperandBool{ nodes[ 0 ], i_scope };
+
     if (nodes.size() == 3) {
         cmp_ = parseCmp( nodes[ 1 ] );
         rhs_ = OperandBool{ nodes[ 2], i_scope };
@@ -359,24 +363,30 @@ LogicBool::LogicBool( const Node& i_node, const LocalScope& i_scope )
 
 LogicInt::LogicInt( const Node& i_node, const LocalScope& i_scope )
     : RuleAssertion{ i_node }
+    , lhs_{ boost::get< Node::Nodes >( i_node.value_ )[ 0 ], i_scope }
+    , cmp_{ parseCmp( boost::get< Node::Nodes >( i_node.value_ )[ 1 ]) }
+    , rhs_{ boost::get< Node::Nodes >( i_node.value_ )[ 2 ], i_scope }
 {
     const auto& nodes = boost::get< Node::Nodes >( i_node.value_ );
     assert( 3 == nodes.size() );
 
-    lhs_ = OperandInt{ nodes[ 0 ], i_scope };
-    cmp_ = parseCmp( nodes[ 1 ] );
-    rhs_ = OperandInt{ nodes[ 2], i_scope };
+    // lhs_ = OperandInt{ nodes[ 0 ], i_scope };
+    // cmp_ = parseCmp( nodes[ 1 ] );
+    // rhs_ = OperandInt{ nodes[ 2], i_scope };
 }
 
 LogicStr::LogicStr( const Node& i_node, const LocalScope& i_scope )
     : RuleAssertion{ i_node }
+    , lhs_{ boost::get< Node::Nodes >( i_node.value_ )[ 0 ], i_scope }
+    , cmp_{ parseCmp( boost::get< Node::Nodes >( i_node.value_ )[ 1 ]) }
+    , rhs_{ boost::get< Node::Nodes >( i_node.value_ )[ 2 ], i_scope }
 {
     const auto& nodes = boost::get< Node::Nodes >( i_node.value_ );
     assert( 3 == nodes.size() );
 
-    lhs_ = OperandStr{ nodes[ 0 ], i_scope };
-    cmp_ = parseCmp( nodes[ 1 ] );
-    rhs_ = OperandStr{ nodes[ 2], i_scope };
+    // lhs_ = OperandStr{ nodes[ 0 ], i_scope };
+    // cmp_ = parseCmp( nodes[ 1 ] );
+    // rhs_ = OperandStr{ nodes[ 2], i_scope };
 }
 
 Logic parseLogic( const Node& i_node, const LocalScope& i_scope )
@@ -437,13 +447,15 @@ Rightside parseRightside( const Node& i_node, const LocalScope& i_scope )
 
 Assignment::Assignment( const Node& i_node, const LocalScope& i_scope )
     : RuleAssertion{ i_node }
+    , lhs_{ parseId( boost::get< Node::Nodes >( i_node.value_ )[ 0 ], i_scope ) }
+    , rhs_{ parseRightside( boost::get< Node::Nodes >( i_node.value_ )[ 1 ], i_scope ) }
 {
     const auto& nodes = boost::get< Node::Nodes >( i_node.value_ );
     assert( 2 == nodes.size() );
 
-    lhs_ = parseId( nodes[ 0 ], i_scope );
-    rhs_ = parseRightside( nodes[ 1 ], i_scope );
-
+    // lhs_ = parseId( nodes[ 0 ], i_scope );
+    // rhs_ = parseRightside( nodes[ 1 ], i_scope );
+    //
     bool result = false;
     if (const auto lhs_id = boost::get< std::string>( &lhs_ )) {
         result = i_scope.declareVariable( *lhs_id );
@@ -484,11 +496,12 @@ SubCall parseSubCall( const Node& i_node, const LocalScope& i_scope )
 
 Write::Write( const Node& i_node, const LocalScope& i_scope )
     : RuleAssertion{ i_node }
+    , rhs_{ parseRightside( boost::get< Node::Nodes >( i_node.value_ )[ 0 ], i_scope ) }
 {
     const auto& nodes = boost::get< Node::Nodes >( i_node.value_ );
     assert( 1 == nodes.size() );
 
-    rhs_ = parseRightside( nodes[ 0 ], i_scope );
+    // rhs_ = parseRightside( nodes[ 0 ], i_scope );
 }
 
 Dim::Dim( const Node& i_node, LocalScope& i_scope )
@@ -543,17 +556,33 @@ boost::optional< uint > parseLabel( const Node& i_node )
     return {};
 }
 
-Line::Line( const Node& i_node, LocalScope& i_scope )
-    : RuleAssertion{ i_node }
+boost::optional< Sline > parseSlineO( const Node& i_node, LocalScope& i_scope )
 {
     const auto& nodes = boost::get< Node::Nodes >( i_node.value_ );
     assert( !nodes.empty());
 
-    label_ = parseLabel( nodes[ 0 ] );
     if (2 == nodes.size())
-        line_ = parseSline( nodes[ 1 ], i_scope );
+        return parseSline( nodes[ 1 ], i_scope );
     else
         assert( false );
+
+    return {};
+}
+
+
+Line::Line( const Node& i_node, LocalScope& i_scope )
+    : RuleAssertion{ i_node }
+    , label_{ parseLabel( boost::get< Node::Nodes >( i_node.value_)[0] ) }
+    , line_{ parseSlineO( i_node, i_scope ) }
+{
+    // const auto& nodes = boost::get< Node::Nodes >( i_node.value_ );
+    // assert( !nodes.empty());
+    //
+    // label_ = parseLabel( nodes[ 0 ] );
+    // if (2 == nodes.size())
+    //     line_ = parseSline( nodes[ 1 ], i_scope );
+    // else
+    //     assert( false );
 }
 
 Lines parseLines( const Node& i_node, LocalScope& i_scope )
@@ -684,7 +713,7 @@ AnyLines parseAnyLines( const Node& i_node, LocalScope& i_scope )
 Program::Program( const Node& i_node )
     : RuleAssertion{ i_node }
     , local_{ { } }
-    , body_{ parseAnyLines( boost::get< Node::Nodes >( i_node.value_ )[ 0 ], local_ ) }
+    , body_( parseAnyLines( boost::get< Node::Nodes >( i_node.value_ )[ 0 ], local_ ) )
 {
 }
 
