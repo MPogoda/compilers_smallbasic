@@ -616,4 +616,76 @@ While::While( const Node& i_node, LocalScope& i_scope )
     , body_( parseLines( boost::get< Node::Nodes >( i_node.value_ )[ 1 ], localScope_ ) )
 {
 }
+
+std::string parseSubName( const Node& i_node, LocalScope& i_scope )
+{
+    const RuleAssertion< lex::rule::NEW_IDENTIFIER > assertion{ i_node };
+
+    const auto ll = boost::get< lex >( i_node.value_ );
+    assert( lex::type::IDENTIFIER == ll.type_ );
+
+    const std::string subName = boost::get< std::string >( ll.value_ );
+    if (!i_scope.declareProc( subName ))
+        throw std::logic_error{ "Cannot declare procedure!" };
+
+    return subName;
+}
+
+SubDecl::SubDecl( const Node& i_node, LocalScope& i_scope )
+    : RuleAssertion{ i_node }
+    , name_{ parseSubName( boost::get< Node::Nodes >( i_node.value_ )[ 0], i_scope ) }
+    , local_{ i_scope.addScope() }
+    , body_{ parseLines( boost::get< Node::Nodes >( i_node.value_ )[ 1 ], local_ ) }
+{
+}
+
+AnyLine parseAnyLine( const Node& i_node, LocalScope& i_scope )
+{
+    const RuleAssertion< lex::rule::ALL_STMT > assertion{ i_node };
+
+    const auto& nodes = boost::get< Node::Nodes >( i_node.value_ );
+    assert( 1 == nodes.size() );
+
+    const auto& child = nodes[ 0 ];
+    if (lex::rule::SUB_STMT == child.rule_)
+        return SubDecl{ child, i_scope };
+    else
+        return Line{ child, i_scope };
+}
+
+AnyLines parseAnyLines( const Node& i_node, LocalScope& i_scope )
+{
+    const RuleAssertion< lex::rule::ALL_STMTS > assertion{ i_node };
+
+    AnyLines result;
+
+    auto pnode = &i_node;
+    while (const auto* nodes = boost::get< Node::Nodes >( &pnode->value_ )) {
+        assert( 2 == nodes->size() );
+
+        result.emplace_back( parseAnyLine( (*nodes)[ 0 ], i_scope ) );
+
+        const RuleAssertion< lex::rule::MORE_ALL_STMTS > assertion{ (*nodes)[1] };
+        pnode = &(*nodes)[1];
+        if (const auto subnodes = boost::get< Node::Nodes >( &pnode->value_)) {
+            assert( subnodes->size() == 1);
+            pnode = &(*subnodes)[ 0 ];
+            const RuleAssertion< lex::rule::ALL_STMTS > assertion( *pnode );
+        } else {
+            break;
+        }
+    }
+
+    assert( lex::type::EPS == boost::get< lex >( pnode->value_ ).type_ );
+
+    return result;
+}
+
+Program::Program( const Node& i_node )
+    : RuleAssertion{ i_node }
+    , local_{ { } }
+    , body_{ parseAnyLines( boost::get< Node::Nodes >( i_node.value_ )[ 0 ], local_ ) }
+{
+}
+
 } // namespace sap

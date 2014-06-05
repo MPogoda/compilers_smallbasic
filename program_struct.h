@@ -228,6 +228,7 @@ struct While : private RuleAssertion< lex::rule::WHILE_STMT >
 
 struct SubDecl : private RuleAssertion< lex::rule::SUB_STMT >
 {
+    const std::string name_;
     LocalScope& local_;
     Lines       body_;
 
@@ -241,6 +242,6 @@ struct Program : private RuleAssertion< lex::rule::START >
     LocalScope  local_;
     AnyLines    body_;
 
-    Program( const node& i_node );
+    Program( const Node& i_node );
 }; // struct Program
 } // namespace sap
