@@ -1073,8 +1073,7 @@ void If::operator()( ProgramCode& code ) const
     const uint elseLabel = GlobalScope::instance().addLabel();
 
     code.push( boost::lexical_cast< std::string >( elseLabel ) );
-    code.push( "if" );
-    code.push( "false" );
+    code.push( "ifFalse" );
 
     getLines( then_, code );
 
@@ -1112,8 +1111,7 @@ void While::operator()( ProgramCode& code ) const
     const uint elseLabel = GlobalScope::instance().addLabel();
 
     code.push( boost::lexical_cast< std::string >( elseLabel ) );
-    code.push( "if" );
-    code.push( "false" );
+    code.push( "ifFalse" );
 
     getLines( body_, code );
 
