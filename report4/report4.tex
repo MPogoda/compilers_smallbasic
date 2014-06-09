@@ -1,0 +1,186 @@
+% vim: spelllang=uk
+\documentclass[a4paper,12pt,notitlepage,pdftex]{scrreprt}
+\usepackage{pdflscape}
+\usepackage{cmap}
+\usepackage[utf8]{inputenc}
+\usepackage[english,ukrainian]{babel}
+\usepackage[T2A]{fontenc}
+\usepackage{a4wide}
+
+\usepackage[pdftex]{graphicx}
+
+\pdfcompresslevel=9 % сжимать PDF
+\usepackage{pdflscape} % для возможности альбомного размещения некоторых страниц
+\usepackage[pdftex]{hyperref}
+% настройка ссылок в оглавлении для pdf формата
+\hypersetup{unicode=true,
+    pdftitle={Лабораторна робота №4},
+    pdfauthor={Кулик Ольга},
+    pdfcreator={pdflatex},
+    pdfsubject={},
+    pdfborder    = {0 0 0},
+    bookmarksopen,
+    bookmarksnumbered,
+    bookmarksopenlevel = 2,
+    pdfkeywords={},
+    colorlinks=true, % установка цвета ссылок в оглавлении
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=blue
+}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\lstloadlanguages{[Visual]Basic,C++}
+\lstset{language=[Visual]Basic,frame=tb,basicstyle=\small,commentstyle=\itshape,extendedchars=false}
+
+\usepackage{multicol}
+
+\begin{document}
+\begin{titlepage}
+    \begin{center}
+        \MakeUppercase{Міністерство освіти і науки України}\\
+        \MakeUppercase{Національний технічний університет України}\\
+        \MakeUppercase{,,Київський політехнічний інститут''}\\
+        \vspace*{2em}
+
+        Факультет прикладної математики\\
+        Кафедра прикладної математики
+
+        \vfill
+
+        \MakeUppercase{Генератор проміжного коду}\\
+        \vspace*{1em}
+
+        Звіт з лабораторної роботи №4\\
+        з дисципліни:\\
+        <<Системи автоматизації програмування>>
+    \end{center}
+
+    \vfill
+    \hfill\begin{minipage}{0.4\textwidth}
+        Виконала студентка\\
+        групи КМ-31м\\
+        Кулик~О.\,О.
+    \end{minipage}
+
+    \vfill
+    \begin{center}
+        Київ\\
+        2014
+    \end{center}
+\end{titlepage}
+
+\tableofcontents
+
+\chapter{Постановка задачі}
+\label{chap:first}
+    Для виконання лабораторної роботи необхідно розробити схему перекладу для основних синтаксичний елементів мови
+    (декларацій, операторів, блоків і програми в цілому), визначити таблицю базових операцій проміжного коду та
+    написати відповідний програмний модуль.
+
+    В якості схеми перекладу слід використовувати ПОЛІЗ (інверсний польський запис).
+\chapter{Схема перекладу в проміжний код}
+    Генерацію проміжного коду для програми в цілому можна представити як суперпозицію генерацій коду для базових
+    синтаксичний елементів.
+
+    \section{Базові бінарні операції}
+        Будь-яка бінарна операція \verb"a op b" представляється у вигляді \verb"a b op".
+        В якості \verb"op" можуть виступати наступні оператори: \verb":=, ==, !=, <, >, +, -, *, /".
+    \section{Звертання до елементу масива}
+        Звертання до елементу масиву \verb"a[ i ]" перетворюється у \verb"a i ]".
+        Слід зазначити, що оскільки в підмножині мови, що розглядається, можливі тільки одновимірні масиви, то не
+        потрібно перед \verb"]" зазначати кількість індексів, що треба робити в загальному випадку.
+    \section{Оператори введення та виведення}
+        Оператор введення в підмножині мови, що розглядається, не приймає жодних параметрів, а тому в проміжному коду
+        він має вигляд лише одної команди: \verb"READ".
+
+        Оператор виведення приймає єдиний параметр, тому в проміжний код він перетворюється за наступною схемою
+        \verb"TextWindow.Write( a )" $\Rightarrow$ \verb$ a WRITE$.
+    \section{Декларації мітки та безумовний перехід}
+        Декларація мітки має вигляд числа з двокрапкою: \verb$m:$.
+
+        Безумовний перехід на мітки \verb$m$ здійснюється за допомогою команди \verb$m BR$.
+    \section{Умовний оператор}
+        Оператор розгалуження \verb$If <uslovie> Then ... Else ... EndIf$ перетворюється за наступною схемою:
+        \verb$<uslovie> m1 ifFalse ... m2 BR m1: ... m2:$.
+
+        Команда \verb"ifFalse" перейде на мітку \verb$m1$ якщо \verb$<uslovie>$ не є істиною.
+    \section{Оператор циклу}
+        Оператор циклу \verb$While <uslovie> ... EndWhile$ представляється у проміжному коді наступним чином:
+        \verb$m1: <uslovie> m2 ifFalse ... m1 BR m2:$.
+    \section{Оператор виклику процедури}
+        Оскільки в підмножині мови, що розглядається, процедури не приймають жодних параметрів, то виклик процедури
+        має вигляд \verb"WriteArray()" $\Rightarrow$ \verb$WriteArray Fn$.
+    \section{Блоки коду, декларація процедур}
+        Блоки коду мають вигляд \verb$BLOCK ... BLCKEND$.
+
+        Декларація процедур має вигляд \verb$<procname>: BLOCK ... BLCKEND$.
+\chapter{Організація генерації коду}
+    Модуль генерації коду використовує синтаксичне дерево, що було побудовано як результат роботи синтаксичного
+    аналізатора після процедури семантичного аналізу.
+
+    Модуль генерації здійснює обхід дерева у глибину й для кожної вершини використовує правила, що були описані у
+    попередньому параграфі для перетворення відповідних вершин.
+\chapter{Тестовий приклад}
+\label{chap:fourth}
+        \lstinputlisting{../test.ba}
+        \paragraph{Проміжний код:}
+        \begin{verbatim}
+BEGIN_OF_PROGRAM
+WriteArray:
+BLOCK
+k  0  :=
+1:  k  4  <
+2  ifFalse
+BLOCK
+k  k  1  +  :=
+ a  k  ]  Write
+", "  Write
+BLCKEND
+1  BR
+2:
+a  k  ]  Write
+BLCKEND
+
+i  0  :=
+3:  i  5  <
+4  ifFalse
+BLOCK
+i  i  1  +  :=
+i  3  !=
+5  ifFalse
+BLOCK
+a  i  ]  i  i  *  :=
+BLCKEND
+6  BR
+5:
+BLOCK
+a  i  ]  42  :=
+BLCKEND
+6:
+BLCKEND
+3  BR
+4:
+WriteArray  Fn
+END_OF_PROGRAM
+\end{verbatim}
+
+\chapter{Висновки}
+\label{chap:concl}
+    Під час виконання лабораторної роботи було виявлено схеми перекладу основних синтаксичних конструкцій у проміжний
+    код у формі ПОЛІЗу.
+    Сама генерація використовує результати другої лабораторної роботи, а саме синтаксичне дерево.
+
+    Оскільки в підмножині мови, що розглядається відсутні багатовимірні масиви та параметри процедур, проміжний код
+    має дещо спрощений вигляд у порівнянні з тим, що був викладений на лекціях.
+
+    Також можна зазначити, що для генерації проміжного кода потрібно створювати мітки, а тому, щоб не було конфліктів
+    з існуючими мітками, потрібно мати механізм для пошуку вільного ідентифікатора мітки.
+
+\chapter*{Додаток. Текст програми}
+    \lstset{language=C++,basicstyle=\scriptsize}
+        \lstinputlisting{../main_window.cxx}
+\end{document}
