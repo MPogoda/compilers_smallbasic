@@ -89,9 +89,9 @@ void MainWindow::parseFile()
 
         GlobalScope::instance().reset();
         Node node{ result, it };
-        std::cout << node << std::endl;
+        // std::cout << node << std::endl;
         Program p{ node };
-        std::cout << GlobalScope::instance() << '\n';
+        // std::cout << GlobalScope::instance() << '\n';
 
         std::stringstream text;
         text << GlobalScope::instance();
