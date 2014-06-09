@@ -57,8 +57,8 @@ struct lex
         , GOTO_STMT
         , WHILE_STMT
         , WRITE_STMT
-        , WRITEABLE
         , SUB_CALL_STMT
+        , NEW_IDENTIFIER
 
         , COUNT
     }; // enum class rule
@@ -73,6 +73,7 @@ struct lex
         , STAR                  // *
         , SLASH                 // /
         , EQUAL                 // =
+        , NOT_EQUAL             // <>
         , LESS                  // <
         , GREATER               // >
         , COLON                 // :

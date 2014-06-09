@@ -25,6 +25,7 @@ const char* const lex::symbol_STRINGS[] = { "("
                                           , "*"
                                           , "/"
                                           , "="
+                                          , "<>"
                                           , "<"
                                           , ">"
                                           , ":"
@@ -74,8 +75,8 @@ const char* const lex::rule_STRINGS[] = { "<start>"
                                         , "<goto-stmt>"
                                         , "<while-stmt>"
                                         , "<write-stmt>"
-                                        , "<writeable>"
                                         , "<sub-call-stmt>"
+                                        , "<new-identifier>"
                                         }; // rule_STRINGS
 std::ostream& operator<<( std::ostream& out, lex::type rhs )
 {

@@ -1,9 +1,18 @@
 #include "syntax.h"
 
+#ifdef NDEBUG
+    #define DEBUG(a)
+    #define DBG(a)
+#else
+    #include <iostream>
+    #define DEBUG(a) std::cout << #a << " = " << (a) << '\n'
+    #define DBG(a) std::cout << __LINE__ << " : " << a << '\n';
+#endif
 namespace sap
 {
 void push_rule( Stack& st, const int rule_number )
 {
+    DEBUG( rule_number );
     switch (rule_number) {
         case 1: st.push( { lex::type::RULE, lex::rule::ALL_STMTS } ); break;
         case 2: st.push( { lex::type::RULE, lex::rule::SUB_STMT } ); break;
@@ -17,7 +26,7 @@ void push_rule( Stack& st, const int rule_number )
                 st.push( { lex::type::RESERVED, lex::reserved_word::ENDSUB } );
                 st.push( { lex::type::RULE, lex::rule::STMTS } );
                 st.push( { lex::type::NEWLINE, 0u } );
-                st.push( { lex::type::IDENTIFIER, "" } );
+                st.push( { lex::type::RULE, lex::rule::NEW_IDENTIFIER } );
                 st.push( { lex::type::RESERVED, lex::reserved_word::SUB } );
                 break;
         case 8: st.push( { lex::type::RULE, lex::rule::MORE_STMTS } );
@@ -38,7 +47,6 @@ void push_rule( Stack& st, const int rule_number )
         case 17: st.push( { lex::type::RULE, lex::rule::WHILE_STMT } ); break;
         case 18: st.push( { lex::type::RULE, lex::rule::WRITE_STMT } ); break;
         case 19: st.push( { lex::type::RULE, lex::rule::SUB_CALL_STMT } ); break;
-/* case 20: */
         case 21: st.push( { lex::type::SYMBOL, lex::symbol::COLON } );
                  st.push( { lex::type::INT_CONST, 0u } );
                  break;
@@ -53,7 +61,7 @@ void push_rule( Stack& st, const int rule_number )
                  st.push( { lex::type::RULE, lex::rule::ID } );
                  break;
         case 25: st.push( { lex::type::RULE, lex::rule::ARRAY_INDEX } );
-                 st.push( { lex::type::IDENTIFIER, "" } );
+                 st.push( { lex::type::RULE, lex::rule::NEW_IDENTIFIER } );
                  break;
         case 26: st.push( { lex::type::IDENTIFIER, "" } ); break;
         case 27: st.push( { lex::type::SYMBOL, lex::symbol::R_BRACKET } );
@@ -88,10 +96,11 @@ void push_rule( Stack& st, const int rule_number )
                  break;
         case 45: st.push( { lex::type::SYMBOL, lex::symbol::LESS}); break;
         case 46: st.push( { lex::type::SYMBOL, lex::symbol::GREATER}); break;
-        case 47: st.push( { lex::type::RULE, lex::rule::LOGIC_EQUALS }); break;
+        case 20: st.push( { lex::type::SYMBOL, lex::symbol::EQUAL }); break;
+        case 47: st.push( { lex::type::SYMBOL, lex::symbol::NOT_EQUAL });
+                 break;
         case 48: st.push( { lex::type::SYMBOL, lex::symbol::EQUAL}); break;
-        case 49: st.push( { lex::type::SYMBOL, lex::symbol::GREATER});
-                 st.push( { lex::type::SYMBOL, lex::symbol::LESS });
+        case 49: st.push( { lex::type::SYMBOL, lex::symbol::NOT_EQUAL });
                  break;
         case 50: st.push( { lex::type::RULE, lex::rule::OPERAND_BOOL });
                  st.push( { lex::type::RULE, lex::rule::LOGIC_EQUALS });
@@ -133,19 +142,16 @@ void push_rule( Stack& st, const int rule_number )
                  break;
         case 62: st.push( { lex::type::NEWLINE, 0u });
                  st.push( { lex::type::SYMBOL, lex::symbol::R_PARENTHESIS });
-                 st.push( { lex::type::RULE, lex::rule::WRITEABLE });
+                 st.push( { lex::type::RULE, lex::rule::RIGHTSIDE });
                  st.push( { lex::type::SYMBOL, lex::symbol::L_PARENTHESIS });
                  st.push( { lex::type::RESERVED, lex::reserved_word::WRITE });
                  break;
-        case 63: st.push( { lex::type::RULE, lex::rule::INT_EXPR }); break;
-        case 64: st.push( { lex::type::RULE, lex::rule::LOGIC }); break;
-        case 65: st.push( { lex::type::STR_CONST, "" }); break;
         case 66: st.push( { lex::type::NEWLINE, 0u });
                  st.push( { lex::type::SYMBOL, lex::symbol::R_PARENTHESIS });
                  st.push( { lex::type::SYMBOL, lex::symbol::L_PARENTHESIS });
                  st.push( { lex::type::IDENTIFIER, "" });
                  break;
-
+        case 67: st.push( { lex::type::IDENTIFIER, "" } ); break;
         default:
             assert( !"NO SUCH RULE!" );
     }
@@ -179,6 +185,8 @@ Queue parse( const Table& table, LIterator begin, const LIterator end, Stack ss)
     Queue result;
     while (ss.size() > 1) {
         const bool atEnd = begin == end;
+        DEBUG( ss.top() );
+        if (!atEnd) DEBUG(*begin);
 
         if (ss.top().type_ == lex::type::COUNT ) {
             break;
@@ -223,6 +231,8 @@ Queue parse( const Table& table, LIterator begin, const LIterator end, Stack ss)
                         }
                         return result;
                     } catch (std::logic_error& ex) {
+                        DBG( "Failed rule" );
+                        DEBUG( rule );
                         continue;
                     }
                 }
@@ -240,6 +250,8 @@ Queue parse( const Table& table, LIterator begin, const LIterator end, Stack ss)
                         }
                         return result;
                     } catch (std::logic_error& ex) {
+                        DBG( "Failed rule" );
+                        DEBUG( rule );
                         continue;
                     }
                 }
@@ -501,8 +513,8 @@ Table createTable()
 
     tmp.insert( { { { lex::type::SYMBOL, lex::symbol::LESS }, 45 }
                 , { { lex::type::SYMBOL, lex::symbol::GREATER }, 46 }
-                , { { lex::type::SYMBOL, lex::symbol::LESS }, 47 }
-                , { { lex::type::SYMBOL, lex::symbol::EQUAL }, 47 }
+                , { { lex::type::SYMBOL, lex::symbol::NOT_EQUAL }, 47 }
+                , { { lex::type::SYMBOL, lex::symbol::EQUAL }, 20 }
                 }
             );
     result.insert( { { lex::type::RULE, lex::rule::COMPARE_INT }
@@ -510,7 +522,7 @@ Table createTable()
     tmp.clear();
 
 
-    tmp.insert( { { { lex::type::SYMBOL, lex::symbol::LESS }, 49 }
+    tmp.insert( { { { lex::type::SYMBOL, lex::symbol::NOT_EQUAL }, 49 }
                 , { { lex::type::SYMBOL, lex::symbol::EQUAL }, 48 }
                 }
             );
@@ -589,23 +601,14 @@ Table createTable()
                    , std::move( tmp ) } );
     tmp.clear();
 
-
-    tmp.insert( { { { lex::type::INT_CONST, 0u }, 63 }
-                , { { lex::type::IDENTIFIER, "" }, 63 }
-                , { { lex::type::BOOL_CONST, false }, 64 }
-                , { { lex::type::IDENTIFIER, "" }, 64 }
-                , { { lex::type::STR_CONST, "" }, 65 }
-                }
-            );
-    result.insert( { { lex::type::RULE, lex::rule::WRITEABLE }
-                   , std::move( tmp ) } );
-    tmp.clear();
-
-
     tmp.insert( { { lex::type::IDENTIFIER, "" }, 66 });
     result.insert( { { lex::type::RULE, lex::rule::SUB_CALL_STMT }
                    , std::move( tmp ) } );
     tmp.clear();
+
+    tmp.insert( { { lex::type::IDENTIFIER, "" }, 67 });
+    result.insert( { { lex::type::RULE, lex::rule::NEW_IDENTIFIER }
+                   , std::move( tmp ) } );
 
     return result;
 }

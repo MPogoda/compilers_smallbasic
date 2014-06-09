@@ -1,14 +1,14 @@
 #pragma once
 
 #include <QWidget>
-#include <QTableView>
+// #include <QTableView>
 #include <QTextEdit>
 #include <QPushButton>
 #include <QLabel>
 
 #include <memory>
 
-#include "lexems_model.h"
+// #include "lexems_model.h"
 
 namespace sap
 {
@@ -19,8 +19,8 @@ public:
     explicit MainWindow( QWidget *parent = nullptr );
     virtual ~MainWindow();
 private:
-    std::unique_ptr< QTableView  >  m_table;
-    std::unique_ptr< LexemsModel >  m_model;
+    // std::unique_ptr< QTableView  >  m_table;
+    // std::unique_ptr< LexemsModel >  m_model;
     std::unique_ptr< QTextEdit   >  m_text;
     std::unique_ptr< QPushButton >  m_open;
     std::unique_ptr< QPushButton >  m_exec;

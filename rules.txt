@@ -8,7 +8,7 @@
 05. <more-all-stmts> → <all-stmts>
 06. <more-all-stmts> → <eps>
 
-07. <sub-stmt> → 'Sub' <identifier> '\n'
+07. <sub-stmt> → 'Sub' <new-identifier> '\n'
                 <stmts>
              'EndSub' '\n'
 
@@ -36,7 +36,7 @@
 
 24. <assignment> → <id> '=' <rightside> '\n'
 
-25. <id> → <identifier> <array-index>
+25. <id> → <new-identifier> <array-index>
 26. <id> → <identifier>
 
 27. <array-index> → '[' <operand-int> ']'
@@ -67,7 +67,8 @@
 
 45. <compare-int> → '<'
 46. <compare-int> → '>'
-47. <compare-int> → <logic-equals>
+47. <compare-int> → '='
+20. <compare-int> → '<>'
 
 48. <logic-equals> → '='
 49. <logic-equals> → '<>'
@@ -97,13 +98,11 @@
                     <stmts>
                 'EndWhile' '\n'
 
-62. <write-stmt> → 'TextWindow.Write' '(' <writeable> ')' '\n'
-
-63. <writeable> → <int-expr>
-64. <writeable> → <logic>
-65. <writeable> → <string-constant>
+62. <write-stmt> → 'TextWindow.Write' '(' <rightside> ')' '\n'
 
 66. <sub-call-stmt> → <identifier> '(' ')' '\n'
+
+67. <new-identifier> → <identifier>
 
 <start>                 01( 'Dim' ) 01( <identifier> ) 01( 'If' ) 01( 'Goto' ) 01( 'While' ) 01( 'TextWindow.Write' ) 01( 'Sub' ) 01(<int-const>)
 <all-stmt>              03( 'Dim' ) 03( <identifier> ) 03( 'If' ) 03( 'Goto' ) 03( 'While' ) 03( 'TextWindow.Write' ) 02( <identifier> ) 02( 'Sub' ) 03( <int-const> )
@@ -126,7 +125,7 @@
 <operator-int>          37( '+' ) 38( '-' ) 39( '/' ) 40('*')
 <logic>                 41( <int-constant> ) 41( <identifier> ) 42( <bool-constant> ) 42( <identifier> ) 43( <string-constant> ) 43( <identifier> )
 <logic-int>             44( <int-constant> ) 45( <identifier> )
-<compare-int>           45( '<' ) 46( '>' ) 47( '<>' ) 47( '=' )
+<compare-int>           45( '<' ) 46( '>' ) 47( '<' ) 20( '=' )
 <logic-equals>          49( '<>' ) 48( '=' )
 <logic-bool>            50( <bool-constant> ) 50( <identifier> ) 51( <bool-constant> ) 51( <identifier > )
 <operand-bool>          53( <bool-constant> ) 52( <identifier> )
@@ -137,5 +136,4 @@
 <goto-stmt>             60( 'Goto' )
 <while-stmt>            61( 'While' )
 <write-stmt>            62( 'TextWindow.Write' )
-<writeable>             63( <int-constant> ) 63( <identifier> ) 64( <bool-constant> ) 64( <identifier> ) 64( <string-constant> ) 65( <string-constant> )
 <sub-call-stmt>         66( <identifier> )
