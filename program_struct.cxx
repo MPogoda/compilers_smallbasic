@@ -1011,7 +1011,7 @@ void Goto::operator()( ProgramCode& code ) const
 void getSubCall( const SubCall& s, ProgramCode& code )
 {
     code.push( s );
-    code.push( "BR" );
+    code.push( "Fn" );
 }
 
 void getSline( const Sline& line, ProgramCode& code )
@@ -1057,7 +1057,7 @@ void getLines( const Lines& lines, ProgramCode& code )
 
 uint GlobalScope::addLabel()
 {
-    const uint last = *declaredLabels_.rbegin();
+    const uint last = declaredLabels_.empty() ? 0 :*declaredLabels_.rbegin();
     const uint result = last + 1;
 
     if (addDeclaredLabel( result ) ) return result;
@@ -1122,5 +1122,34 @@ void While::operator()( ProgramCode& code ) const
         ss << elseLabel << ':';
         code.push( ss.str() );
     }
+}
+
+void SubDecl::operator()( ProgramCode& code ) const
+{
+    {
+        std::stringstream ss;
+        ss << name_ << ':';
+        code.push( ss.str() );
+    }
+    getLines( body_, code );
+}
+
+void getAnyLine( const AnyLine& line, ProgramCode& code )
+{
+    if (const auto d = boost::get< Line >( &line )) {
+        ( *d )( code );
+    } else if (const auto d = boost::get< SubDecl >( &line )) {
+        (*d)( code );
+    } else assert( !"Cannot generate code for AnyLine element!" );
+}
+
+void Program::operator()( ProgramCode& code ) const
+{
+    code.push( "BEGIN_OF_PROGRAM" );
+
+    for (const auto& line : body_ )
+        getAnyLine( line, code );
+
+    code.push( "END_OF_PROGRAM" );
 }
 } // namespace sap

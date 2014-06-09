@@ -26,6 +26,7 @@ private:
     std::unique_ptr< QPushButton >  m_exec;
     std::unique_ptr< QPushButton >  m_quit;
     std::unique_ptr< QLabel      >  m_rules;
+    std::unique_ptr< QLabel      >  m_code;
 private slots:
     void openFile();
     void parseFile();

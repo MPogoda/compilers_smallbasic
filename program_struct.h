@@ -262,6 +262,7 @@ struct SubDecl : private RuleAssertion< lex::rule::SUB_STMT >
     Lines       body_;
 
     SubDecl( const Node& i_node, LocalScope& i_scope );
+    void operator()( ProgramCode& i_code ) const;
 }; // struct SubDecl
 
 using AnyLine = boost::variant< Line, SubDecl >;
@@ -271,5 +272,6 @@ struct Program : private RuleAssertion< lex::rule::START >
     AnyLines    body_;
 
     Program( const Node& i_node );
+    void operator()( ProgramCode& i_code ) const;
 }; // struct Program
 } // namespace sap

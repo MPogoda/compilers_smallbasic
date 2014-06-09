@@ -25,9 +25,11 @@ MainWindow::MainWindow( QWidget *parent )
     , m_exec{   new QPushButton{ tr("Parse" ), this } }
     , m_quit{   new QPushButton{ tr("Quit" ), this } }
     , m_rules{  new QLabel{ tr(""), this } }
+    , m_code{  new QLabel{ tr(""), this } }
 {
     // m_table->setModel( m_model.get() );
     m_rules->setWordWrap( true );
+    m_code->setWordWrap( true );
 
     std::unique_ptr< QHBoxLayout > top_layout{  new QHBoxLayout };
         top_layout->addWidget( m_open.get() );
@@ -40,7 +42,7 @@ MainWindow::MainWindow( QWidget *parent )
     std::unique_ptr< QVBoxLayout > main_layout{ new QVBoxLayout{ this } };
         main_layout->addLayout( top_layout.release() );
         main_layout->addLayout( bottom_layout.release() );
-        // main_layout->addWidget( m_rules.get() );
+        main_layout->addWidget( m_code.get() );
 
     main_layout.release();
 
@@ -97,7 +99,15 @@ void MainWindow::parseFile()
         text << GlobalScope::instance();
         m_rules->setText( QString::fromStdString( text.str() ) );
 
+        {
+            ProgramCode code;
+            std::stringstream ss;
+            p( code );
+            for (const auto s : code.code_ )
+                ss << s << " | ";
 
+            m_code->setText( QString::fromStdString( ss.str() ) );
+        }
 
 
         // std::stringstream rules;
