@@ -691,8 +691,11 @@ boost::optional< Sline > parseSlineO( const Node& i_node, LocalScope& i_scope )
 
     if (2 == nodes.size())
         return parseSline( nodes[ 1 ], i_scope );
-    else
-        assert( false );
+    // else {
+    //     DEBUG( nodes.size() );
+    //     DEBUG( nodes[ 0 ]);
+    //     assert( false );
+    // }
 
     return {};
 }
