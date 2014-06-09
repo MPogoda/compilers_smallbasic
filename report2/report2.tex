@@ -1,0 +1,299 @@
+% vim: spelllang=uk
+\documentclass[a4paper,12pt,notitlepage,pdftex]{scrreprt}
+\usepackage{pdflscape}
+\usepackage{cmap}
+\usepackage[utf8]{inputenc}
+\usepackage[english,ukrainian]{babel}
+\usepackage[T2A]{fontenc}
+\usepackage{a4wide}
+
+\usepackage[pdftex]{graphicx}
+
+\pdfcompresslevel=9 % сжимать PDF
+\usepackage{pdflscape} % для возможности альбомного размещения некоторых страниц
+\usepackage[pdftex]{hyperref}
+% настройка ссылок в оглавлении для pdf формата
+\hypersetup{unicode=true,
+    pdftitle={Лабораторна робота №2},
+    pdfauthor={Кулик Ольга},
+    pdfcreator={pdflatex},
+    pdfsubject={},
+    pdfborder    = {0 0 0},
+    bookmarksopen,
+    bookmarksnumbered,
+    bookmarksopenlevel = 2,
+    pdfkeywords={},
+    colorlinks=true, % установка цвета ссылок в оглавлении
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=blue
+}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\lstloadlanguages{[Visual]Basic,C++}
+\lstset{language=[Visual]Basic,frame=tb,basicstyle=\small,commentstyle=\itshape,extendedchars=false}
+
+\usepackage{multicol}
+
+\begin{document}
+\begin{titlepage}
+    \begin{center}
+        \MakeUppercase{Міністерство освіти і науки України}\\
+        \MakeUppercase{Національний технічний університет України}\\
+        \MakeUppercase{,,Київський політехнічний інститут''}\\
+        \vspace*{2em}
+
+        Факультет прикладної математики\\
+        Кафедра прикладної математики
+
+        \vfill
+
+        \MakeUppercase{Побудова синтаксичного аналізатора}\\
+        \vspace*{1em}
+
+        Звіт з лабораторної роботи №2\\
+        з дисципліни:\\
+        <<Системи автоматизації програмування>>
+    \end{center}
+
+    \vfill
+    \hfill\begin{minipage}{0.4\textwidth}
+        Виконала студентка\\
+        групи КМ-31м\\
+        Кулик~О.\,О.
+    \end{minipage}
+
+    \vfill
+    \begin{center}
+        Київ\\
+        2014
+    \end{center}
+\end{titlepage}
+
+\tableofcontents
+
+\chapter{Постановка задачі}
+\label{chap:first}
+    Для виконання лабораторної роботи необхідно побудувати синтаксичний аналізатор (СА) для підмножини мови
+    програмування \texttt{SmallBasic}, що була описана в попередній лабораторній роботі.
+
+    Синтаксичний аналізатор повинен використовувати ліву рекурсію (LL).
+    \textit{LL аналізатор} --- це алгоритм синтаксичного аналізу методом рекурсивного спуску для підмножини
+    контекстно"=вільних граматик.
+    Він обробляє вхід зліва направо (тому перша буква означає Left), та будує ліворекурсивне виведення рядка.
+\chapter{Технічне завдання}
+\label{chap:second}
+    \section{Формальне визначення вихідної граматики}
+    \label{sec:formal}
+        Вихідна граматика формально описується як четвірка:
+        \begin{equation}
+            \label{eq:grammar}
+            G = \left( N, \Sigma, P, S \right)
+        \end{equation}
+        , де
+        \begin{itemize}
+            \item $N$ --- алфавіт нетермінальних символів, наведений у на сторінці~\pageref{para:nonterm};
+            \item $\Sigma$ --- алфавіт термінальних символів, який містить лексеми, що були здобуті під час лексичного
+                аналізу; наведені на сторінці~\pageref{para:term};
+            \item $P$ --- множина правил граматики, наведена на сторінці~\pageref{para:rules};
+            \item $S$ --- початковий символ граматики (дорівнює \verb'<start>').
+        \end{itemize}
+
+        \paragraph{Нетермінальні символи граматики}
+        \label{para:nonterm}
+        \begin{multicols}{3}
+            \begin{enumerate}
+                \item \verb'{start}'
+                \item \verb'{all-stmt}'
+                \item \verb'{all-stmts}'
+                \item \verb'{more-all-stmts}'
+                \item \verb'{sub-stmt}'
+                \item \verb'{stmts}'
+                \item \verb'{more-stmts}'
+                \item \verb'{lstmt}'
+                \item \verb'{stmt}'
+                \item \verb'{label-def}'
+                \item \verb'{dim-expr}'
+                \item \verb'{assignment}'
+                \item \verb'{id}'
+                \item \verb'{array-index}'
+                \item \verb'{operand-int}'
+                \item \verb'{rightside}'
+                \item \verb'{read-stmt}'
+                \item \verb'{int-expr}'
+                \item \verb'{operator-int}'
+                \item \verb'{logic}'
+                \item \verb'{logic-int}'
+                \item \verb'{compare-int}'
+                \item \verb'{logic-equals}'
+                \item \verb'{logic-bool}'
+                \item \verb'{operand-bool}'
+                \item \verb'{logic-str}'
+                \item \verb'{operand-str}'
+                \item \verb'{if-stmt}'
+                \item \verb'{else-part}'
+                \item \verb'{goto-stmt}'
+                \item \verb'{while-stmt}'
+                \item \verb'{write-stmt}'
+                \item \verb'{writeable}'
+                \item \verb'{sub-call-stmt}'
+            \end{enumerate}
+        \end{multicols}
+
+        \paragraph{Термінальні символи граматики}
+        \label{para:term}
+        \begin{multicols}{3}
+            \begin{enumerate}
+                \item \verb'('
+                \item \verb')'
+                \item \verb'+'
+                \item \verb'-'
+                \item \verb'*'
+                \item \verb'/'
+                \item \verb':'
+                \item \verb'['
+                \item \verb']'
+                \item \verb'='
+                \item \verb'<'
+                \item \verb'>'
+                \item \verb'Sub'
+                \item \verb'TextWindow.Write'
+                \item \verb'While'
+                \item \verb'EndWhile'
+                \item \verb'Goto'
+                \item \verb'Else'
+                \item \verb'If'
+                \item \verb'Then'
+                \item \verb'EndIf'
+                \item \verb'TextWindow.Read'
+                \item \verb'Dim'
+                \item \verb'Sub'
+                \item \verb'EndSub'
+                \item \verb'{int-constant}' --- будь-яке ціле число.
+                \item \verb'{bool-constant}' --- \verb'"true"' чи \verb'"false"'.
+                \item \verb'{string-constant}' --- будь-яка строкова константа.
+                \item \verb'{identifier}' --- будь-який ідентифікатор.
+                \item \verb'{newline}' --- кінець рядка.
+                \item $\varepsilon$ --- порожній символ.
+            \end{enumerate}
+        \end{multicols}
+
+        \paragraph{Правила вихідної граматики}
+        \label{para:rules}
+            Множина правил граматики подається у вигляді $ A \rightarrow B$.
+            \begin{enumerate}
+                \item \verb'{start}' $\rightarrow$ \verb'{all-stmts}'
+                \item \verb'{all-stmt}' $\rightarrow$ \verb'{sub-stmt}'
+                \item \verb'{all-stmt}' $\rightarrow$ \verb'{lstmt}'
+                \item \verb'{all-stmts}' $\rightarrow$ \verb'{all-stmt} {more-all-stmts}'
+                \item \verb'{more-all-stmts}' $\rightarrow$ \verb'{all-stmts}'
+                \item \verb'{more-all-stmts}' $\rightarrow \varepsilon$
+                \item \verb'{sub-stmt}' $\rightarrow$ \verb'Sub {identifier} {newline} {stmts} EndSub {newline}'
+                \item \verb'{stmts}' $\rightarrow$ \verb'{lstmt} {more-stmts}'
+                \item \verb'{more-stmts}' $\rightarrow$ \verb'{stmts}'
+                \item \verb'{more-stmts}' $\rightarrow \varepsilon$
+                \item \verb'{lstmt}' $\rightarrow$ \verb'{label-def} {stmt}'
+                \item \verb'{lstmt}' $\rightarrow$ \verb'{label-def} {newline}'
+                \item \verb'{stmt}' $\rightarrow$ \verb'{dim-expr}'
+                \item \verb'{stmt}' $\rightarrow$ \verb'{assignment}'
+                \item \verb'{stmt}' $\rightarrow$ \verb'{if-stmt}'
+                \item \verb'{stmt}' $\rightarrow$ \verb'{goto-stmt}'
+                \item \verb'{stmt}' $\rightarrow$ \verb'{while-stmt}'
+                \item \verb'{stmt}' $\rightarrow$ \verb'{write-stmt}'
+                \item \verb'{stmt}' $\rightarrow$ \verb'{sub-call-stmt}'
+                \stepcounter{enumi}
+                \item \verb'{label-def}' $\rightarrow$ \verb'{int_constant} :'
+                \item \verb'{label-def}' $\rightarrow \varepsilon$
+                \item \verb'{dim-expr}' $\rightarrow$ \verb'Dim  {identifier} {newline}'
+                \item \verb'{assignment}' $\rightarrow$ \verb'{id} = {rightside} {newline}'
+                \item \verb'{id}' $\rightarrow$ \verb'{identifier} {array-index}'
+                \item \verb'{id}' $\rightarrow$ \verb'{identifier}'
+                \item \verb'{array-index}' $\rightarrow$ \verb'[ {operand-int} ]'
+                \item \verb'{operand-int}' $\rightarrow$ \verb'{id}'
+                \item \verb'{operand-int}' $\rightarrow$ \verb'{int-constant}'
+                \item \verb'{rightside}' $\rightarrow$ \verb'{read-stmt}'
+                \item \verb'{rightside}' $\rightarrow$ \verb'{int-expr}'
+                \item \verb'{rightside}' $\rightarrow$ \verb'{logic}'
+                \item \verb'{rightside}' $\rightarrow$ \verb'{string-constant}'
+                \item \verb'{read-stmt}' $\rightarrow$ \verb'TextWindow.Read ( )'
+                \item \verb'{int-expr}' $\rightarrow$ \verb'{operand-int} {operator-int} {operand-int}'
+                \item \verb'{int-expr}' $\rightarrow$ \verb'{operand-int}'
+                \item \verb'{operator-int}' $\rightarrow$ \verb'+'
+                \item \verb'{operator-int}' $\rightarrow$ \verb'-'
+                \item \verb'{operator-int}' $\rightarrow$ \verb'/'
+                \item \verb'{operator-int}' $\rightarrow$ \verb'*'
+                \item \verb'{logic}' $\rightarrow$ \verb'{logic-int}'
+                \item \verb'{logic}' $\rightarrow$ \verb'{logic-bool}'
+                \item \verb'{logic}' $\rightarrow$ \verb'{logic-str}'
+                \item \verb'{logic-int}' $\rightarrow$ \verb'{operand-int} {compare-int} {operand-int}'
+                \item \verb'{compare-int}' $\rightarrow$ \verb'<'
+                \item \verb'{compare-int}' $\rightarrow$ \verb'>'
+                \item \verb'{compare-int}' $\rightarrow$ \verb'{logic-equals}'
+                \item \verb'{logic-equals}' $\rightarrow$ \verb'='
+                \item \verb'{logic-equals}' $\rightarrow$ \verb'<>'
+                \item \verb'{logic-bool}' $\rightarrow$ \verb'{operand-bool} {logic-equals} {operand-bool}'
+                \item \verb'{logic-bool}' $\rightarrow$ \verb'{operand-bool}'
+                \item \verb'{operand-bool}' $\rightarrow$ \verb'{id}'
+                \item \verb'{operand-bool}' $\rightarrow$ \verb'{bool-constant}'
+                \item \verb'{logic-str}' $\rightarrow$ \verb'{operand-str} {logic-equals} {operand-str}'
+                \item \verb'{operand-str}' $\rightarrow$ \verb'{id}'
+                \item \verb'{operand-str}' $\rightarrow$ \verb'{string_constant}'
+                \item \verb'{if-stmt}' $\rightarrow$ \verb'If{logic}Then{newline}{stmts}{else-part}EndIf{newline}'
+                \item \verb'{else-part}' $\rightarrow$ \verb'Else {newline} {stmts}'
+                \item \verb'{else-part}' $\rightarrow \varepsilon$
+                \item \verb'{goto-stmt}' $\rightarrow$ \verb'Goto {int-constant} {newline}'
+                \item \verb'{while-stmt}' $\rightarrow$ \verb'While {logic} {newline} {stmts} EndWhile {newline}'
+                \item \verb'{write-stmt}' $\rightarrow$ \verb'TextWindow.Write ( {writeable} ) {newline}'
+                \item \verb'{writeable}' $\rightarrow$ \verb'{int-expr}'
+                \item \verb'{writeable}' $\rightarrow$ \verb'{logic}'
+                \item \verb'{writeable}' $\rightarrow$ \verb'{string-constant}'
+                \item \verb'{sub-call-stmt}' $\rightarrow$ \verb'{identifier} ( ) {newline}'
+            \end{enumerate}
+\chapter{Опис роботи програми та її логічної структури}
+\label{chap:third}
+    В даній роботі синтаксичний аналіз виконується за допомогою \texttt{LL(1)} метода.
+    В якості вхідних символів граматики використовуються лексеми, отримані за допомогою лексичного аналізатору,
+    розробленого в попередній лабораторній роботі.
+
+    Синтаксичний аналіз проходить одразу після коректного завершення роботи лексичного аналізатора.
+
+    Алгоритм синтаксичного розбору використовує сконструйовану заздалегідь таблицю переходів.
+
+    Результатом роботи синтаксичного аналізатора є ліворекурсивне виведення рядка чи повідомлення про помилку.
+\chapter{Тестові приклади}
+\label{chap:fourth}
+    \section{Коректний приклад}
+    \label{sec:ex1}
+        \lstinputlisting{../test.ba}
+        Цей вихідний текст має наступний ланцюжок розбору:
+        1 $\rightarrow$ 4 $\rightarrow$ 2 $\rightarrow$ 7 $\rightarrow$ 8 $\rightarrow$ 11 $\rightarrow$ 22
+          $\rightarrow$ 14 $\rightarrow$ 24 $\rightarrow$ 26 $\rightarrow$ 31 $\rightarrow$ 36 $\rightarrow$ 29
+          $\rightarrow$ 9 $\rightarrow$ 8 $\rightarrow$ 11 $\rightarrow$ 22 $\rightarrow$ 17 $\rightarrow$ 61
+          $\rightarrow$ 41 $\rightarrow$ 44 $\rightarrow$ 28 $\rightarrow$ 26 $\rightarrow$ 45 $\rightarrow$ 29
+          $\rightarrow \dots$
+          $\rightarrow$ 8 $\rightarrow$ 11 $\rightarrow$ 22 $\rightarrow$ 14 $\rightarrow$ 24 $\rightarrow$ 26
+          $\rightarrow$ 35 $\rightarrow$ 28 $\rightarrow$ 26 $\rightarrow$ 40 $\rightarrow$ 28 $\rightarrow$ 26
+          $\rightarrow$ 10 $\rightarrow$ 58 $\rightarrow$ 8 $\rightarrow$ 11 $\rightarrow$ 22 $\rightarrow$ 14
+          $\rightarrow$ 24 $\rightarrow$ 25 $\rightarrow$ 27 $\rightarrow$ 28 $\rightarrow$ 26 $\rightarrow$ 31
+          $\rightarrow$ 36 $\rightarrow$ 29 $\rightarrow$ 10 $\rightarrow$ 10 $\rightarrow$ 5 $\rightarrow$ 4
+          $\rightarrow$ 3 $\rightarrow$ 11 $\rightarrow$ 22 $\rightarrow$ 19 $\rightarrow$ 66 $\rightarrow$ 6
+    \section{Приклад з синтаксичною помилкою}
+    \label{sec:ex2}
+        \begin{lstlisting}
+            a = Dim
+        \end{lstlisting}
+\chapter{Висновки}
+\label{chap:concl}
+    Як результат фази лексичного аналізу будується лексична згортка, по якій працює синтаксичний аналізатор.
+    В результаті отримуємо чи синтаксичний розбір тексту програми, чи повідомлення про помилку.
+
+    В даній роботі був реалізований синтаксичний аналізатор, що використовує LL(1) граматику, показані його основні
+    можливості, приведені коректні й некоректні приклади.
+\chapter*{Додаток. Текст програми}
+    \lstset{language=C++,basicstyle=\scriptsize}
+    \lstinputlisting{../syntax.h}
+    \lstinputlisting{../syntax.cxx}
+\end{document}
