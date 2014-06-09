@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <iterator>
 
+#include <boost/lexical_cast.hpp>
+
 namespace sap
 {
 namespace
@@ -308,6 +310,7 @@ OperandInt::Value parseInt( const Node& i_node, const LocalScope& i_scope )
         return parseId( nodes[ 0 ], i_scope );
     }
 }
+
 OperandInt::OperandInt( const Node& i_node, const LocalScope& i_scope )
     : RuleAssertion{ i_node }
     , value_{ parseInt( i_node, i_scope ) }
@@ -852,4 +855,144 @@ Program::Program( const Node& i_node )
     DBG( '!' );
 }
 
+void getId( const Id& id, ProgramCode& code)
+{
+    if (const auto s = boost::get< std::string >( &id )) {
+        code.push( *s );
+    } else if (const auto s = boost::get< ArrayElement >( &id )) {
+        (*s)( code );
+    } else
+        assert( !"Cannot generate code for ID!" );
+}
+
+void ArrayElement::operator()( ProgramCode& code ) const
+{
+    code.push( lhs_ );
+    rhs_( code );
+    code.push( "]" );
+}
+
+void OperandInt::operator()( ProgramCode& code ) const
+{
+    if (const auto s = boost::get< int >( &value_ )) {
+        code.push( boost::lexical_cast< std::string >( *s ) );
+    } else if (const auto s = boost::get< Id >( &value_ )) {
+        getId( *s, code );
+    } else
+        assert( !"Cannot generate code for OperandInt!" );
+}
+
+void OperandBool::operator()( ProgramCode& code ) const
+{
+    if (const auto s = boost::get< bool >( &value_ )) {
+        code.push( (*s) ? "true" : "false" );
+    } else if (const auto s = boost::get< Id >( &value_ )) {
+        getId( *s, code );
+    } else
+        assert( !"Cannot generate code for OperandBool!" );
+}
+
+void OperandStr::operator()( ProgramCode& code ) const
+{
+    if (const auto s = boost::get< std::string >( &value_ )) {
+        std::stringstream ss;
+        ss << '"' << *s << '"';
+        code.push( ss.str() );
+    } else if (const auto s = boost::get< Id >( &value_ )) {
+        getId( *s, code );
+    } else
+        assert( !"Cannot generate code for OperandStr!" );
+}
+
+std::string getOp( IntExpr::Op i_op )
+{
+    switch (i_op) {
+        case IntExpr::Op::PLUS: return "+";
+        case IntExpr::Op::MINUS: return "-";
+        case IntExpr::Op::MULT: return "*";
+        case IntExpr::Op::DIV: return "/";
+        default: assert( !"No such OP!" );
+    }
+}
+
+void IntExpr::operator()( ProgramCode& code ) const
+{
+    lhs_( code );
+    if ( op_ && rhs_ ) {
+        (*rhs_)( code );
+        code.push( getOp( *op_ ) );
+    }
+}
+
+std::string getCmp( Cmp i_cmp )
+{
+    switch (i_cmp) {
+        case Cmp::EQ: return "==";
+        case Cmp::NE: return "!=";
+        case Cmp::LE: return "<";
+        case Cmp::GE: return ">";
+        default: assert( !"No such OP!" );
+    }
+}
+
+void LogicBool::operator()( ProgramCode& code ) const
+{
+    lhs_( code );
+    if ( cmp_ && rhs_ ) {
+        (*rhs_)( code );
+        code.push( getCmp( *cmp_ ) );
+    }
+}
+
+void LogicInt::operator()( ProgramCode& code ) const
+{
+    lhs_( code );
+    rhs_( code );
+    code.push( getCmp( cmp_ ) );
+}
+
+void LogicStr::operator()( ProgramCode& code ) const
+{
+    lhs_( code );
+    rhs_( code );
+    code.push( getCmp( cmp_ ) );
+}
+
+void getLogic( const Logic& logic, ProgramCode& code )
+{
+    if (const auto d = boost::get< LogicBool >( &logic )) {
+        (*d)( code );
+    } else if (const auto d = boost::get< LogicInt >( &logic )) {
+        (*d)( code );
+    } else if (const auto d = boost::get< LogicStr >( &logic )) {
+        (*d)( code );
+    } else assert( !"Cannot generate code for LOGIC element!" );
+}
+
+void Input::operator()( ProgramCode& code ) const
+{
+    code.push( "READ" );
+}
+
+void getRightside( const Rightside& rhs, ProgramCode& code)
+{
+    if (const auto d = boost::get< Logic >( &rhs )) {
+        getLogic( *d, code );
+    } else if (const auto d = boost::get< IntExpr >( &rhs )) {
+        (*d)( code );
+    } else if (const auto d = boost::get< Input >( &rhs )) {
+        (*d)( code );
+    } else if (const auto d = boost::get< std::string >( &rhs )) {
+        std::stringstream ss;
+        ss << '"' << *d << '"';
+        code.push( ss.str() );
+    } else assert( !"Cannot generate code for LOGIC element!" );
+}
+
+void Assignment::operator()( ProgramCode& code ) const
+{
+    getId( lhs_, code );
+    getRightside( rhs_, code );
+    code.push( ":=" );
+}
 } // namespace sap

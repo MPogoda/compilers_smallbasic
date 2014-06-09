@@ -1,6 +1,7 @@
 #pragma once
 
 #include "program_tree.h"
+#include "program_code.h"
 
 #include <vector>
 #include <string>
@@ -101,6 +102,7 @@ struct OperandInt : private RuleAssertion< lex::rule::OPERAND_INT >
     Value value_;
 
     OperandInt( const Node& i_node, const LocalScope& i_scope );
+    void operator()( ProgramCode& i_code ) const;
 }; // struct OperantInt
 
 struct ArrayElement : private RuleAssertion< lex::rule::ID >
@@ -109,6 +111,7 @@ struct ArrayElement : private RuleAssertion< lex::rule::ID >
     OperandInt  rhs_;
 
     ArrayElement( const Node& i_node, const LocalScope& i_scope );
+    void operator()( ProgramCode& i_code ) const;
 }; // struct ArrayElement
 
 struct OperandBool : private RuleAssertion< lex::rule::OPERAND_BOOL >
@@ -117,6 +120,7 @@ struct OperandBool : private RuleAssertion< lex::rule::OPERAND_BOOL >
     Value value_;
 
     OperandBool( const Node& i_node, const LocalScope& i_scope );
+    void operator()( ProgramCode& i_code ) const;
 }; // struct OperandBool
 
 struct OperandStr : private RuleAssertion< lex::rule::OPERAND_STR >
@@ -125,6 +129,7 @@ struct OperandStr : private RuleAssertion< lex::rule::OPERAND_STR >
     Value value_;
 
     OperandStr( const Node& i_node, const LocalScope& i_scope );
+    void operator()( ProgramCode& i_code ) const;
 }; // struct OperandStr
 
 struct IntExpr : private RuleAssertion< lex::rule::INT_EXPR >
@@ -135,6 +140,7 @@ struct IntExpr : private RuleAssertion< lex::rule::INT_EXPR >
     boost::optional< OperandInt >   rhs_;
 
     IntExpr( const Node& i_node, const LocalScope& i_scope );
+    void operator()( ProgramCode& i_code ) const;
 }; // struct IntExpr
 
 enum class Cmp { EQ, NE, LE, GE };
@@ -146,6 +152,7 @@ struct LogicBool : private RuleAssertion< lex::rule::LOGIC_BOOL >
     boost::optional< OperandBool >  rhs_;
 
     LogicBool( const Node& i_node, const LocalScope& i_scope );
+    void operator()( ProgramCode& i_code ) const;
 }; // struct LogicBool
 
 struct LogicInt : private RuleAssertion< lex::rule::LOGIC_INT >
@@ -155,6 +162,7 @@ struct LogicInt : private RuleAssertion< lex::rule::LOGIC_INT >
     OperandInt  rhs_;
 
     LogicInt( const Node& i_node, const LocalScope& i_scope );
+    void operator()( ProgramCode& i_code ) const;
 }; // struct LogicInt
 
 struct LogicStr : private RuleAssertion< lex::rule::LOGIC_STR >
@@ -164,6 +172,7 @@ struct LogicStr : private RuleAssertion< lex::rule::LOGIC_STR >
     OperandStr  rhs_;
 
     LogicStr( const Node& i_node, const LocalScope& i_scope );
+    void operator()( ProgramCode& i_code ) const;
 }; // struct LogicStr
 
 using Logic = boost::variant< LogicBool, LogicInt, LogicStr >;
@@ -171,6 +180,7 @@ using Logic = boost::variant< LogicBool, LogicInt, LogicStr >;
 struct Input : private RuleAssertion< lex::rule::READ_STMT >
 {
     Input( const Node& i_node );
+    void operator()( ProgramCode& i_code ) const;
 };
 
 using Rightside = boost::variant< Logic, IntExpr, Input, std::string >;
@@ -180,6 +190,7 @@ struct Assignment : private RuleAssertion< lex::rule::ASSIGNMENT >
     Id          lhs_;
     Rightside   rhs_;
     Assignment( const Node& i_node, const LocalScope& i_scope );
+    void operator()( ProgramCode& i_code ) const;
 }; // struct Assignment
 
 struct Goto : private RuleAssertion< lex::rule::GOTO_STMT >
