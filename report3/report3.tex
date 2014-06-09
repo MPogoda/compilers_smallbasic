@@ -1,0 +1,178 @@
+% vim: spelllang=uk
+\documentclass[a4paper,12pt,notitlepage,pdftex]{scrreprt}
+\usepackage{pdflscape}
+\usepackage{cmap}
+\usepackage[utf8]{inputenc}
+\usepackage[english,ukrainian]{babel}
+\usepackage[T2A]{fontenc}
+\usepackage{a4wide}
+
+\usepackage[pdftex]{graphicx}
+
+\pdfcompresslevel=9 % сжимать PDF
+\usepackage{pdflscape} % для возможности альбомного размещения некоторых страниц
+\usepackage[pdftex]{hyperref}
+% настройка ссылок в оглавлении для pdf формата
+\hypersetup{unicode=true,
+    pdftitle={Лабораторна робота №2},
+    pdfauthor={Кулик Ольга},
+    pdfcreator={pdflatex},
+    pdfsubject={},
+    pdfborder    = {0 0 0},
+    bookmarksopen,
+    bookmarksnumbered,
+    bookmarksopenlevel = 2,
+    pdfkeywords={},
+    colorlinks=true, % установка цвета ссылок в оглавлении
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=blue
+}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\lstloadlanguages{[Visual]Basic,C++}
+\lstset{language=[Visual]Basic,frame=tb,basicstyle=\small,commentstyle=\itshape,extendedchars=false}
+
+\usepackage{multicol}
+
+\begin{document}
+\begin{titlepage}
+    \begin{center}
+        \MakeUppercase{Міністерство освіти і науки України}\\
+        \MakeUppercase{Національний технічний університет України}\\
+        \MakeUppercase{,,Київський політехнічний інститут''}\\
+        \vspace*{2em}
+
+        Факультет прикладної математики\\
+        Кафедра прикладної математики
+
+        \vfill
+
+        \MakeUppercase{Побудова таблиці символів}\\
+        \vspace*{1em}
+
+        Звіт з лабораторної роботи №3\\
+        з дисципліни:\\
+        <<Системи автоматизації програмування>>
+    \end{center}
+
+    \vfill
+    \hfill\begin{minipage}{0.4\textwidth}
+        Виконала студентка\\
+        групи КМ-31м\\
+        Кулик~О.\,О.
+    \end{minipage}
+
+    \vfill
+    \begin{center}
+        Київ\\
+        2014
+    \end{center}
+\end{titlepage}
+
+\tableofcontents
+
+\chapter{Постановка задачі}
+\label{chap:first}
+    Для виконання лабораторної роботи необхідно розглянути, організувати й побудувати таблицю символів до
+    синтаксичного аналізатора для підмножини мови програмування \texttt{SmallBasic}, що була описана в попередній
+    лабораторній роботі.
+
+\chapter{Організація таблиці символів та її компонентів}
+\label{chap:second}
+    Оскільки у підмножині мови, з якою має працювати семантичний аналізатор, майже немає областей видимості змінних
+    (єдиний механізм для цього --- доданий штучний шляхом до мови оператор \verb'Dim'), то основні зберігаються у
+    глобальній таблиці, яка містить наступні елементи:
+    \begin{itemize}
+        \item Таблиця символів, що були використані (це може бути змінна, масив чи процедура).
+        \item Таблиця символів, що були задекларовані.
+            Якщо після виконання програми перша таблиця має символи, що не містяться у другій --- це означає
+            семантичну помилку.
+        \item Таблиця міток (використаних й створених).
+        \item Посилання на <<локальну таблицю>>, яка має наступний вигляд:
+            \begin{itemize}
+                \item Імена змінних, що були задекларовані за допомогою оператору \verb'Dim' у поточному блоці коду.
+                \item Посилання на вкладені локальні таблиці.
+            \end{itemize}
+    \end{itemize}
+    \section{Обраний метод пошуку символів}
+    \label{sec:formal}
+        В даній роботі використовується пошук символів за допомогою хеш"=таблиці.
+        Оскільки процедури у мові мають характер макросів, то неможливо заздалегідь знати, чи буде задекларований той
+        чи інший символ.
+        Через це кожен використаний символ зберігається у відповідній таблиці до того часу, як він не буде
+        задекларований.
+
+        Семантичний аналіз перевіряє, що один й той самий символ не використовується для різних категорій (змінна,
+        масив чи процедура).
+
+        Після аналізу програми буде видно, які символи не були задекларовані.
+\chapter{Метод побудови таблиці символів}
+    Під час використання синтаксичного аналізатора, що був розроблений під час попередньої лабораторної роботи можна
+    виділити скінченну кількість нетермінальних символів, під час розбору яких треба використовувати таблицю символів,
+    а саме:
+    \begin{itemize}
+        \item \verb'{new-identifier}'
+        \item \verb'{dim-expr}'
+        \item \verb'{id}'
+        \item \verb'{sub-stmt}'
+    \end{itemize}
+
+    Під час розбору цих вузлів синтаксичного дерева виконуються семантичні процедури, що будують таблицю символів і
+    виконують наступні функції:
+    \begin{itemize}
+        \item Перевірка, що один й той самий символ використовуються завжди в одному із трьох типів (масив, змінна чи
+            процедура).
+        \item Перевірка, що процедура не оголошується більше одного разу.
+        \item Перевірка, що ім’я локальної змінної не перекриває глобальну змінну.
+        \item Перевірка, що кожен використаний символ був оголошений.
+        \item Перевірка, що кожна використана мітка була оголошена.
+    \end{itemize}
+\chapter{Тестові приклади}
+\label{chap:fourth}
+    \section{Коректний приклад}
+    \label{sec:ex1}
+        \lstinputlisting{../test.ba}
+        \begin{verbatim}
+Available global definitions:
+  WriteArray : Procedure
+  a : Array
+  i : Variable
+  k : Variable
+Available labels:
+Available new local variables: {{NONE}}
+  Available new local variables: {{NONE}}
+    Available new local variables: {{NONE}}
+  Available new local variables: {{NONE}}
+    Available new local variables: {{NONE}}
+    Available new local variables: {{NONE}}
+\end{verbatim}
+
+    \section{Приклад з семантичною помилкою}
+    \label{sec:ex2}
+        \begin{lstlisting}
+            a = b + c
+        \end{lstlisting}
+        \begin{verbatim}
+Available global definitions:
+  a : Variable
+NOT DECLARED, BUT USED DECLARATIONS:
+  b : Variable
+  c : Variable
+Available labels:
+Available new local variables: {{NONE}}
+\end{verbatim}
+
+\chapter{Висновки}
+\label{chap:concl}
+    Для семантичної коректності програми необхідно знати складові програми, характеристики ідентифікаторів, тощо.
+    Семантичний контроль задля ефективності був вбудований у фазу синтаксичного аналізу: під час побудови дерева
+    синтаксичного розбору в залежності від типу вузла виконуються певні семантичні процедурі, що й будують таблицю
+    символів та перевіряють семантичну коректність програми.
+\chapter*{Додаток. Текст програми}
+    \lstset{language=C++,basicstyle=\scriptsize}
+        \lstinputlisting{../program_struct.h}
+\end{document}
