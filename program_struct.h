@@ -66,6 +66,7 @@ struct GlobalScope
     bool addDeclaredLabel( uint i_label );
     bool addUsedLabel( uint i_label );
 
+    uint addLabel( );
     static GlobalScope& instance();
 
     void reset();
@@ -197,12 +198,14 @@ struct Goto : private RuleAssertion< lex::rule::GOTO_STMT >
 {
     uint to_;
     Goto( const Node& i_node );
+    void operator()( ProgramCode& i_code ) const;
 }; // struct Goto
 
 struct Write : private RuleAssertion< lex::rule::WRITE_STMT >
 {
     Rightside rhs_;
     Write( const Node& i_node, const LocalScope& i_scope );
+    void operator()( ProgramCode& i_code ) const;
 }; // struct Write
 
 using SubCall = std::string;
@@ -226,6 +229,7 @@ struct Line : private RuleAssertion< lex::rule::LSTMT >
     boost::optional< Sline >    line_;
 
     Line( const Node& i_node, LocalScope& i_scope );
+    void operator()( ProgramCode& i_code ) const;
 }; // private Line
 
 using Lines = std::vector< Line >;
@@ -238,6 +242,7 @@ struct If : private RuleAssertion< lex::rule::IF_STMT >
     Lines       else_;
 
     If( const Node& i_node, LocalScope& i_scope );
+    void operator()( ProgramCode& i_code ) const;
 }; // struct If
 
 struct While : private RuleAssertion< lex::rule::WHILE_STMT >
@@ -247,6 +252,7 @@ struct While : private RuleAssertion< lex::rule::WHILE_STMT >
     Lines       body_;
 
     While( const Node& i_node, LocalScope& i_scope );
+    void operator()( ProgramCode& i_code ) const;
 }; // struct While
 
 struct SubDecl : private RuleAssertion< lex::rule::SUB_STMT >

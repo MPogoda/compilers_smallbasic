@@ -986,7 +986,7 @@ void getRightside( const Rightside& rhs, ProgramCode& code)
         std::stringstream ss;
         ss << '"' << *d << '"';
         code.push( ss.str() );
-    } else assert( !"Cannot generate code for LOGIC element!" );
+    } else assert( !"Cannot generate code for RIGHTSIDE element!" );
 }
 
 void Assignment::operator()( ProgramCode& code ) const
@@ -994,5 +994,133 @@ void Assignment::operator()( ProgramCode& code ) const
     getId( lhs_, code );
     getRightside( rhs_, code );
     code.push( ":=" );
+}
+
+void Write::operator()( ProgramCode& code ) const
+{
+    getRightside( rhs_, code );
+    code.push( "Write" );
+}
+
+void Goto::operator()( ProgramCode& code ) const
+{
+    code.push( boost::lexical_cast< std::string >( to_ ) );
+    code.push( "BR" );
+}
+
+void getSubCall( const SubCall& s, ProgramCode& code )
+{
+    code.push( s );
+    code.push( "BR" );
+}
+
+void getSline( const Sline& line, ProgramCode& code )
+{
+    if (const auto d = boost::get< Assignment >( &line )) {
+        ( *d )( code );
+    } else if (const auto d = boost::get< SubCall >( &line )) {
+        getSubCall(*d, code );
+    } else if (const auto d = boost::get< Goto >( &line )) {
+        (*d)(code);
+    } else if (const auto d = boost::get< Write >( &line )) {
+        (*d)(code);
+    } else if (const auto d = boost::get< If >( &line )) {
+        (*d)(code);
+    } else if (const auto d = boost::get< While >( &line )) {
+        (*d)(code);
+    } else if (boost::get< Dim >( &line )) {
+        // NOP
+    } else assert( !"Cannot generate code for Sline element!" );
+}
+
+void Line::operator()( ProgramCode& code ) const
+{
+    if (label_) {
+        std::stringstream ss;
+        ss << *label_ << ":";
+        code.push( ss.str() );
+    }
+
+    if (line_) {
+        getSline( *line_, code );
+    }
+}
+
+void getLines( const Lines& lines, ProgramCode& code )
+{
+    code.push( "BLOCK" );
+    for ( const auto& line : lines ) {
+        line( code );
+    }
+    code.push( "BLCKEND" );
+}
+
+uint GlobalScope::addLabel()
+{
+    const uint last = *declaredLabels_.rbegin();
+    const uint result = last + 1;
+
+    if (addDeclaredLabel( result ) ) return result;
+    else return 0;
+}
+
+void If::operator()( ProgramCode& code ) const
+{
+    getLogic( logic_, code );
+    const uint elseLabel = GlobalScope::instance().addLabel();
+
+    code.push( boost::lexical_cast< std::string >( elseLabel ) );
+    code.push( "if" );
+    code.push( "false" );
+
+    getLines( then_, code );
+
+    const uint ifLabel = GlobalScope::instance().addLabel();
+
+    code.push( boost::lexical_cast< std::string >( ifLabel ) );
+    code.push( "BR" );
+
+    {
+        std::stringstream ss;
+        ss << elseLabel << ':';
+        code.push( ss.str() );
+    }
+
+    getLines( else_, code );
+
+    {
+        std::stringstream ss;
+        ss << ifLabel << ':';
+        code.push( ss.str() );
+    }
+}
+
+void While::operator()( ProgramCode& code ) const
+{
+    const uint logicLabel = GlobalScope::instance().addLabel();
+    {
+        std::stringstream ss;
+        ss << logicLabel << ':';
+        code.push( ss.str() );
+    }
+
+    getLogic( logic_, code );
+
+    const uint elseLabel = GlobalScope::instance().addLabel();
+
+    code.push( boost::lexical_cast< std::string >( elseLabel ) );
+    code.push( "if" );
+    code.push( "false" );
+
+    getLines( body_, code );
+
+    code.push( boost::lexical_cast< std::string >( logicLabel ) );
+    code.push( "BR" );
+
+    {
+        std::stringstream ss;
+        ss << elseLabel << ':';
+        code.push( ss.str() );
+    }
 }
 } // namespace sap
